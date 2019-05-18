@@ -3,6 +3,10 @@ project(gpu-swarm)
 
 add_executable(swarm
     src/main.cpp
+    src/util.cpp
+    src/util.h
+    src/profiler.cpp
+    src/profiler.h
 )
 
 set_property(TARGET swarm PROPERTY CXX_STANDARD 11)
