@@ -29,3 +29,7 @@ target_link_libraries(swarm PRIVATE glm)
 # opencl
 find_package(OpenCL REQUIRED)
 target_link_libraries(swarm PRIVATE OpenCL::OpenCL)
+
+# opengl
+find_package(OpenGL REQUIRED)
+target_link_libraries(swarm PRIVATE ${OPENGL_LIBRARIES})
