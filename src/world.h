@@ -6,6 +6,7 @@
 class World {
     private:
     glm::vec3 clear_color;
+    glm::vec3 bird_color;
     util::MeshMetaData bird;
 
     public:

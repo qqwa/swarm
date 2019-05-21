@@ -3,7 +3,8 @@
 #include <iostream>
 
 World::World() {
-    clear_color = {0.0, 0.0, 0.0};
+    clear_color = {0.2, 0.3, 0.3};
+    bird_color = {0.0, 0.0, 0.0};
     bird = util::loadMesh("res/bird.obj");
 }
 
