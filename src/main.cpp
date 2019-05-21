@@ -2,6 +2,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "world.h"
 
 int main() {
     GLFWwindow* window;
@@ -30,15 +31,16 @@ int main() {
     // TODO: init opencl
 
     // TODO: initialize data, swarm members, mesh, etc...
+    World world = World();
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
         // TODO: check if we need to calculate next frame
+        world.update(0.0167);
 
         // TODO: draw frame
-        glClearColor(0.5, 0.5, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        world.render();
 
         glfwSwapBuffers(window);
     }

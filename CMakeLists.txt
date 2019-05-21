@@ -7,6 +7,8 @@ add_executable(swarm
     src/util.h
     src/profiler.cpp
     src/profiler.h
+    src/world.cpp
+    src/world.h
 )
 
 set_property(TARGET swarm PROPERTY CXX_STANDARD 11)
