@@ -1,5 +1,17 @@
 # GPU Programmierung
 
+## Build
+
+Clone this repositiory:
+
+```bash
+git clone git@git.ios.htwg-konstanz.de:gpu/swarm.git
+cd swarm
+git submodule update --init --recursive
+```
+
+Execute `./run.sh` to build and run the project.
+
 ## Themen
 
  + Schwarm mit vielen Mitgliedern
