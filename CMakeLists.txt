@@ -9,6 +9,16 @@ add_executable(swarm
     src/profiler.h
     src/world.cpp
     src/world.h
+    src/wind.cpp
+    src/wind.h
+    src/swarm.cpp
+    src/swarm.h
+    src/gravitation.cpp
+    src/gravitation.h
+    src/track_point.cpp
+    src/track_point.h
+    src/swarm_trajectory.cpp
+    src/swarm_trajectory.h
 )
 
 set_property(TARGET swarm PROPERTY CXX_STANDARD 11)
