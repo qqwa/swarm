@@ -1,8 +1,7 @@
 #pragma once
 
 class TrackPoint {
-    private:
-
-    public:
+  private:
+  public:
     TrackPoint();
 };

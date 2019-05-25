@@ -1,5 +1,3 @@
 #include "gravitation.h"
 
-Gravitation::Gravitation() {
-
-}
+Gravitation::Gravitation() {}

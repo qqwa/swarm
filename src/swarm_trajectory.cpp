@@ -1,5 +1,3 @@
 #include "swarm_trajectory.h"
 
-SwarmTrajectory::SwarmTrajectory() {
-
-}
+SwarmTrajectory::SwarmTrajectory() {}

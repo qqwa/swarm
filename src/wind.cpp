@@ -1,5 +1,3 @@
 #include "wind.h"
 
-Wind::Wind() {
-
-}
+Wind::Wind() {}

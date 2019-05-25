@@ -1,8 +1,7 @@
 #pragma once
 
 class Wind {
-    private:
-
-    public:
+  private:
+  public:
     Wind();
 };

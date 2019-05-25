@@ -1,8 +1,7 @@
 #pragma once
 
 class SwarmTrajectory {
-    private:
-
-    public:
+  private:
+  public:
     SwarmTrajectory();
 };

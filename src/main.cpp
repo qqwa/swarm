@@ -1,11 +1,11 @@
-#include<iostream>
+#include <iostream>
 #define GLEW_STATIC
+#include "world.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "world.h"
 
 int main() {
-    GLFWwindow* window;
+    GLFWwindow *window;
 
     glfwInit();
 
@@ -33,7 +33,7 @@ int main() {
     // TODO: initialize data, swarm members, mesh, etc...
     World world = World();
 
-    while(!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
         // TODO: check if we need to calculate next frame

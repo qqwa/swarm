@@ -1,8 +1,7 @@
 #pragma once
 
 class Gravitation {
-    private:
-
-    public:
+  private:
+  public:
     Gravitation();
 };

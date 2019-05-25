@@ -1,10 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include "util.h"
+#include <glm/glm.hpp>
 
 class World {
-    private:
+  private:
     glm::vec3 clear_color;
     glm::vec3 bird_color;
     util::MeshMetaData bird;
@@ -14,7 +14,7 @@ class World {
     glm::mat4 projection;
     glm::mat4 model;
 
-    public:
+  public:
     World();
     void update(float delta);
     void render();
