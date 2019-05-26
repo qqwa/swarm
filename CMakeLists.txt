@@ -21,6 +21,8 @@ add_executable(swarm
     src/swarm_trajectory.h
     src/transform.cpp
     src/transform.h
+    src/camera.cpp
+    src/camera.h
 )
 
 set_property(TARGET swarm PROPERTY CXX_STANDARD 11)

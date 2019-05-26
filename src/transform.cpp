@@ -78,5 +78,5 @@ glm::vec3 Transform::GetUp() const {
 }
 
 glm::vec3 Transform::GetRight() const {
-    return glm::normalize((glm::cross(GetForward(), GetUp())));
+    return glm::normalize(m_orientation * (glm::cross(GetForward(), GetUp())));
 }

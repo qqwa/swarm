@@ -31,9 +31,10 @@ int main() {
     // TODO: init opencl
 
     // TODO: initialize data, swarm members, mesh, etc...
-    World world = World();
+    World world = World(window);
 
-    while (!glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+    while (!glfwWindowShouldClose(window) &&
+           !glfwGetKey(window, GLFW_KEY_ESCAPE)) {
         glfwPollEvents();
 
         // TODO: check if we need to calculate next frame

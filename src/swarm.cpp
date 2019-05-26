@@ -44,7 +44,7 @@ void Swarm::update(float delta) {
 }
 
 void Swarm::render(util::MeshMetaData mesh, GLuint shader) {
-    std::cout << "Rendering " << size() << " birds." << std::endl;
+    //    std::cout << "Rendering " << size() << " birds." << std::endl;
     for (int i = 0; i < size(); i++) {
         auto model =
             Transform::Matrix(m_posistions[i], m_orientations[i], m_scales[i]);

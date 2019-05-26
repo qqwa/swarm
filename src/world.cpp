@@ -4,24 +4,53 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-World::World() : m_swarm(8000) {
+World::World(GLFWwindow *window) : m_swarm(8000) {
+    m_window = window;
     clear_color = {0.2, 0.3, 0.3};
     bird_color = {0.0, 0.0, 0.0};
     bird = util::loadMesh("res/bird.obj");
     bird_shader = util::getShader("res/shader/bird");
 
-    view = glm::mat4(1.0f);
-    projection = glm::mat4(1.0f);
+    m_move_speed = 50.0;
+    m_rotation_speed = 80;
 
-    view = glm::translate(view, glm::vec3(0.0f, -20.0f, -300.0f));
-    view = glm::rotate(view, glm::radians(10.f), glm::vec3(1.f, 0.f, 0.f));
-    projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600,
-                                  0.1f, 1000.0f);
+    m_camera.setProjection(glm::perspective(
+        glm::radians(45.0f), (float)800 / (float)600, 0.1f, 1000.0f));
+    m_camera.move_forward(-200);
 
     m_swarm.reset_transforms(glm::vec3(0), glm::quat(), glm::vec3(0.5));
 }
 
-void World::update(float delta) { m_swarm.update(delta); }
+void World::update(float delta) {
+    // move camera
+    if (glfwGetKey(m_window, GLFW_KEY_W)) {
+        m_camera.move_forward(m_move_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_S)) {
+        m_camera.move_forward(-m_move_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_A)) {
+        m_camera.move_left(m_move_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_D)) {
+        m_camera.move_left(-m_move_speed * delta);
+    }
+    // rotate camera
+    if (glfwGetKey(m_window, GLFW_KEY_UP)) {
+        m_camera.rotateHorizontal(m_rotation_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_DOWN)) {
+        m_camera.rotateHorizontal(-m_rotation_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT)) {
+        m_camera.rotateVertical(-m_rotation_speed * delta);
+    }
+    if (glfwGetKey(m_window, GLFW_KEY_RIGHT)) {
+        m_camera.rotateVertical(m_rotation_speed * delta);
+    }
+
+    m_swarm.update(delta);
+}
 
 void World::render() {
     glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0);
@@ -31,9 +60,10 @@ void World::render() {
     // draw swarm
     glUseProgram(bird_shader);
     int viewLocation = glGetUniformLocation(bird_shader, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
+                       glm::value_ptr(m_camera.GetTransform()));
     int projectionLocation = glGetUniformLocation(bird_shader, "projection");
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
-                       glm::value_ptr(projection));
+                       glm::value_ptr(m_camera.GetProjection()));
     m_swarm.render(bird, bird_shader);
 }
