@@ -45,6 +45,5 @@ int main() {
         glfwSwapBuffers(window);
     }
 
-    std::cout << "Hello World!" << std::endl;
     return 0;
 }
