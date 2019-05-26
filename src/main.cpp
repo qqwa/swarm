@@ -33,7 +33,7 @@ int main() {
     // TODO: initialize data, swarm members, mesh, etc...
     World world = World();
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE)) {
         glfwPollEvents();
 
         // TODO: check if we need to calculate next frame
