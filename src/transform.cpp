@@ -1,6 +1,8 @@
 #include "transform.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <iostream>
 
 Transform::Transform(const glm::vec3 &position, const glm::quat &orientation,
                      const glm::vec3 &scale)
@@ -20,9 +22,9 @@ Transform::~Transform() {}
 glm::mat4 Transform::Matrix(const glm::vec3 &position,
                             const glm::quat &orientation,
                             const glm::vec3 &scale) {
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(), position);
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1), position);
     glm::mat4 rotationMatrix = glm::mat4_cast(orientation);
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(), scale);
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1), scale);
     return translationMatrix * rotationMatrix * scaleMatrix;
 }
 

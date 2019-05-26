@@ -19,6 +19,8 @@ add_executable(swarm
     src/track_point.h
     src/swarm_trajectory.cpp
     src/swarm_trajectory.h
+    src/transform.cpp
+    src/transform.h
 )
 
 set_property(TARGET swarm PROPERTY CXX_STANDARD 11)

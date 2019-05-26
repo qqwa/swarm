@@ -1,5 +1,6 @@
 #pragma once
 
+#include "swarm.h"
 #include "util.h"
 #include <glm/glm.hpp>
 
@@ -12,7 +13,8 @@ class World {
 
     glm::mat4 view;
     glm::mat4 projection;
-    glm::mat4 model;
+
+    Swarm m_swarm;
 
   public:
     World();
