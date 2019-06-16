@@ -6,7 +6,11 @@
 
 Swarm::Swarm(size_t member_count)
     : m_posistions(member_count), m_orientations(member_count),
-      m_scales(member_count) {}
+      m_scales(member_count) {
+    bird_color = {0.0, 0.0, 0.0};
+    bird_mesh = util::loadMesh("res/bird.obj");
+    bird_shader = util::getShader("res/shader/bird");
+}
 
 void Swarm::reset_transforms(glm::vec3 position, glm::quat orientation,
                              glm::vec3 scale) {
@@ -43,14 +47,24 @@ void Swarm::update(float delta) {
     }
 }
 
-void Swarm::render(util::MeshMetaData mesh, GLuint shader) {
+void Swarm::render(Camera &camera) {
+
+    glUseProgram(bird_shader);
+    int viewLocation = glGetUniformLocation(bird_shader, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetTransform()));
+    int projectionLocation = glGetUniformLocation(bird_shader, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetProjection()));
+
     //    std::cout << "Rendering " << size() << " birds." << std::endl;
     for (int i = 0; i < size(); i++) {
         auto model =
             Transform::Matrix(m_posistions[i], m_orientations[i], m_scales[i]);
-        int modelLocation = glGetUniformLocation(shader, "model");
+        int modelLocation = glGetUniformLocation(bird_shader, "model");
         glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-        glBindVertexArray(mesh.vao);
-        glDrawElements(GL_TRIANGLES, mesh.indicesCount, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(bird_mesh.vao);
+        glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount, GL_UNSIGNED_INT,
+                       0);
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug_defines.h"
 #include <CL/cl.hpp>
 #include <GL/glew.h>
 #include <glm/glm.hpp>

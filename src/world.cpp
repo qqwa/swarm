@@ -7,9 +7,6 @@
 World::World(GLFWwindow *window) : m_swarm(8000) {
     m_window = window;
     clear_color = {0.2, 0.3, 0.3};
-    bird_color = {0.0, 0.0, 0.0};
-    bird = util::loadMesh("res/bird.obj");
-    bird_shader = util::getShader("res/shader/bird");
 
     m_move_speed = 50.0;
     m_rotation_speed = 80;
@@ -58,12 +55,5 @@ void World::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw swarm
-    glUseProgram(bird_shader);
-    int viewLocation = glGetUniformLocation(bird_shader, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
-                       glm::value_ptr(m_camera.GetTransform()));
-    int projectionLocation = glGetUniformLocation(bird_shader, "projection");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
-                       glm::value_ptr(m_camera.GetProjection()));
-    m_swarm.render(bird, bird_shader);
+    m_swarm.render(m_camera);
 }

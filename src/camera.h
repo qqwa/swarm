@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug_defines.h"
 #include <glm/glm.hpp>
 
 class Camera {
