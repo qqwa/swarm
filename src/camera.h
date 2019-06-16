@@ -17,6 +17,7 @@ class Camera {
     void setProjection(glm::mat4 projection);
     const glm::mat4 &GetProjection() const;
     glm::mat4 GetTransform() const;
+    glm::mat4 GetTransformWithoutTranslation() const;
     void move_forward(float value);
     void move_left(float value);
     void rotateHorizontal(float value);

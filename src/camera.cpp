@@ -28,6 +28,10 @@ glm::mat4 Camera::GetTransform() const {
     return glm::lookAt(m_position, m_position + forward(), {0.0f, 1.0f, 0.0f});
 }
 
+glm::mat4 Camera::GetTransformWithoutTranslation() const {
+    return glm::lookAt({0.0, 0.0, 0.0}, forward(), {0.0f, 1.0f, 0.0f});
+}
+
 void Camera::move_forward(float value) { m_position += forward() * value; }
 
 void Camera::move_left(float value) {

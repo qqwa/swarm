@@ -9,7 +9,7 @@ Swarm::Swarm(size_t member_count)
       m_scales(member_count) {
     bird_color = {0.0, 0.0, 0.0};
     bird_mesh = util::loadMesh("res/bird.obj");
-    bird_shader = util::getShader("res/shader/bird");
+    bird_shader = util::getShader("res/shader/default");
 }
 
 void Swarm::reset_transforms(glm::vec3 position, glm::quat orientation,
@@ -56,6 +56,8 @@ void Swarm::render(Camera &camera) {
     int projectionLocation = glGetUniformLocation(bird_shader, "projection");
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
                        glm::value_ptr(camera.GetProjection()));
+    int colorLocation = glGetUniformLocation(bird_shader, "color");
+    glUniform3fv(colorLocation, 1, glm::value_ptr(bird_color));
 
     //    std::cout << "Rendering " << size() << " birds." << std::endl;
     for (int i = 0; i < size(); i++) {

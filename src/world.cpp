@@ -56,4 +56,5 @@ void World::render() {
 
     // draw swarm
     m_swarm.render(m_camera);
+    m_wind.render(m_camera);
 }
