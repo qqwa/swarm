@@ -2,6 +2,7 @@
 #include <GL/gl.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
 World::World(GLFWwindow *window) : m_swarm(8000) {
@@ -16,6 +17,9 @@ World::World(GLFWwindow *window) : m_swarm(8000) {
     m_camera.move_forward(-200);
 
     m_swarm.reset_transforms(glm::vec3(0), glm::quat(), glm::vec3(0.5));
+
+    m_wind = Wind();
+    m_gravitation = Gravitation(+9.81);
 }
 
 void World::update(float delta) {
@@ -47,6 +51,10 @@ void World::update(float delta) {
     }
 
     m_swarm.update(delta);
+    m_wind.update(delta);
+    // std::cout << "gravitation: " << glm::to_string(m_gravitation.get_force())
+    // << std::endl; std::cout << "wind       : " <<
+    // glm::to_string(m_wind.get_force()) << std::endl;
 }
 
 void World::render() {
@@ -57,4 +65,5 @@ void World::render() {
     // draw swarm
     m_swarm.render(m_camera);
     m_wind.render(m_camera);
+    m_gravitation.render(m_camera);
 }

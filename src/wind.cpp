@@ -1,8 +1,7 @@
 #include "wind.h"
 
-Wind::Wind() : m_transform({0, 0, 0}) {
-    auto s = 10;
-    m_transform.SetScale({s, s, s});
+Wind::Wind()
+    : m_direction(glm::angleAxis(glm::radians(80.0f), glm::vec3{0, 0, -1})) {
     arrow_color = {1.0, 1.0, 1.0};
     arrow_mesh = util::loadMesh("res/arrow.obj");
     arrow_shader = util::getShader("res/shader/default");
@@ -10,14 +9,15 @@ Wind::Wind() : m_transform({0, 0, 0}) {
 
 void Wind::update(float delta) {
     // do nothing for now
+    m_strength += 10 * delta;
 }
 
 void Wind::render(Camera &camera) {
     glUseProgram(arrow_shader);
     int viewLocation = glGetUniformLocation(arrow_shader, "view");
     auto view = camera.GetTransformWithoutTranslation();
-    view[3][0] = 50;
-    view[3][1] = 50;
+    view[3][0] = 75;
+    view[3][1] = 75;
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
     int projectionLocation = glGetUniformLocation(arrow_shader, "projection");
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
@@ -26,9 +26,17 @@ void Wind::render(Camera &camera) {
     int colorLocation = glGetUniformLocation(arrow_shader, "color");
     glUniform3fv(colorLocation, 1, glm::value_ptr(arrow_color));
 
+    auto s = 5;
+    auto transform =
+        Transform({0, 0, 0}, m_direction, {s, s * 1.25 + (m_strength / 10), s});
     int modelLocation = glGetUniformLocation(arrow_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
-                       glm::value_ptr(m_transform.GetMatrix()));
+                       glm::value_ptr(transform.GetMatrix()));
     glBindVertexArray(arrow_mesh.vao);
     glDrawElements(GL_TRIANGLES, arrow_mesh.indicesCount, GL_UNSIGNED_INT, 0);
+}
+
+glm::vec3 Wind::get_force() const {
+    // normalized direction times strength
+    return {0, 0, 0};
 }

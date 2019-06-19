@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "camera.h"
+#include "gravitation.h"
 #include "swarm.h"
 #include "wind.h"
 
@@ -23,6 +24,7 @@ class World {
     float m_rotation_speed;
 
     Wind m_wind;
+    Gravitation m_gravitation;
 
   public:
     World(GLFWwindow *window);

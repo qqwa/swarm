@@ -11,10 +11,12 @@ class Wind {
     util::MeshMetaData arrow_mesh;
     GLuint arrow_shader;
 
-    Transform m_transform;
+    glm::quat m_direction;
+    float m_strength;
 
   public:
     Wind();
     void update(float delta);
     void render(Camera &camera);
+    glm::vec3 get_force() const;
 };
