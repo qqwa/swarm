@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "gravitation.h"
 #include "swarm.h"
+#include "track_point.h"
 #include "wind.h"
 
 class World {
@@ -25,6 +26,7 @@ class World {
 
     Wind m_wind;
     Gravitation m_gravitation;
+    TrackPoint m_track_point;
 
   public:
     World(GLFWwindow *window);

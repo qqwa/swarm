@@ -52,6 +52,7 @@ void World::update(float delta) {
 
     m_swarm.update(delta);
     m_wind.update(delta);
+    m_track_point.update(delta);
     // std::cout << "gravitation: " << glm::to_string(m_gravitation.get_force())
     // << std::endl; std::cout << "wind       : " <<
     // glm::to_string(m_wind.get_force()) << std::endl;
@@ -66,4 +67,5 @@ void World::render() {
     m_swarm.render(m_camera);
     m_wind.render(m_camera);
     m_gravitation.render(m_camera);
+    m_track_point.render(m_camera);
 }
