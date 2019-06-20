@@ -1,10 +1,18 @@
 #include <iostream>
 #define GLEW_STATIC
+#include "config.h"
 #include "world.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " CONFIG" << std::endl;
+        return 1;
+    }
+    auto path = std::string(argv[1]);
+    config = new Config(path);
+
     GLFWwindow *window;
 
     glfwInit();
@@ -14,7 +22,10 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    window = glfwCreateWindow(800, 600, "DebugWindow", nullptr, nullptr);
+    std::cout << config->random_seed << std::endl;
+
+    window = glfwCreateWindow(config->width, config->height, "DebugWindow",
+                              nullptr, nullptr);
     if (window == nullptr) {
         std::cout << "Failed to create window" << std::endl;
         exit(1);

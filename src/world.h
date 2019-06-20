@@ -1,6 +1,5 @@
 #pragma once
 
-#include "debug_defines.h"
 #include "util.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -27,6 +26,8 @@ class World {
     Wind m_wind;
     Gravitation m_gravitation;
     TrackPoint m_track_point;
+
+    int tick;
 
   public:
     World(GLFWwindow *window);

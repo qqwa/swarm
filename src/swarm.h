@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "debug_defines.h"
 #include "transform.h"
 #include "util.h"
 #include <glm/glm.hpp>
@@ -18,6 +17,7 @@ class Swarm {
     std::vector<glm::quat> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..
   public:
+    Swarm();
     Swarm(size_t member_count);
     void reset_transforms(glm::vec3 position, glm::quat orientation,
                           glm::vec3 scale);

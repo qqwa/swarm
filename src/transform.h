@@ -1,6 +1,5 @@
 #pragma once
 
-#include "debug_defines.h"
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <memory>

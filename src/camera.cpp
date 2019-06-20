@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "config.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
@@ -21,10 +22,12 @@ glm::vec3 Camera::forward() const {
 }
 
 glm::mat4 Camera::GetTransform() const {
-#ifdef DEBUG_CAMERA
-    std::cout << "Pos: " << glm::to_string(m_position)
-              << " - Pitch: " << m_pitch << " - Yaw: " << m_yaw << std::endl;
-#endif DEBUG_CAMERA
+    if (config->debug("camera_position")) {
+        std::cout << "Pos: " << glm::to_string(m_position)
+                  << " - Pitch: " << m_pitch << " - Yaw: " << m_yaw
+                  << std::endl;
+    }
+
     return glm::lookAt(m_position, m_position + forward(), {0.0f, 1.0f, 0.0f});
 }
 
@@ -49,3 +52,9 @@ void Camera::rotateHorizontal(float value) {
 }
 
 void Camera::rotateVertical(float value) { m_yaw += value; }
+
+void Camera::update(int tick) {
+    m_position = config->get_camera_pos(tick);
+    m_pitch = config->get_camera_pitch(tick);
+    m_yaw = config->get_camera_yaw(tick);
+}

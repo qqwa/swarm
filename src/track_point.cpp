@@ -1,4 +1,5 @@
 #include "track_point.h"
+#include "config.h"
 
 TrackPoint::TrackPoint() : m_transform({0.0, 0.0, 0.0}) {
     track_point_color = {0.0, 0.7, 0.3};
@@ -6,7 +7,10 @@ TrackPoint::TrackPoint() : m_transform({0.0, 0.0, 0.0}) {
     track_point_shader = util::getShader("res/shader/default");
 }
 
-void TrackPoint::update(float delta) {}
+void TrackPoint::update(int tick) {
+    auto pos = config->get_track_point(tick);
+    m_transform.SetPosition(pos);
+}
 
 void TrackPoint::render(Camera &camera) {
     glUseProgram(track_point_shader);

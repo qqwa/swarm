@@ -1,4 +1,5 @@
 #include "wind.h"
+#include "config.h"
 
 Wind::Wind()
     : m_direction(glm::angleAxis(glm::radians(80.0f), glm::vec3{0, 0, -1})) {
@@ -7,9 +8,10 @@ Wind::Wind()
     arrow_shader = util::getShader("res/shader/default");
 }
 
-void Wind::update(float delta) {
+void Wind::update(int tick) {
     // do nothing for now
-    m_strength += 10 * delta;
+    m_direction = config->get_wind_dir(tick);
+    m_strength = config->get_wind_strength(tick);
 }
 
 void Wind::render(Camera &camera) {
@@ -28,7 +30,7 @@ void Wind::render(Camera &camera) {
 
     auto s = 5;
     auto transform =
-        Transform({0, 0, 0}, m_direction, {s, s * 1.25 + (m_strength / 10), s});
+        Transform({0, 0, 0}, m_direction, {s, s * (m_strength / 5), s});
     int modelLocation = glGetUniformLocation(arrow_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
                        glm::value_ptr(transform.GetMatrix()));

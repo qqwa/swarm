@@ -4,6 +4,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
+Swarm::Swarm() : Swarm(0) {}
+
 Swarm::Swarm(size_t member_count)
     : m_posistions(member_count), m_orientations(member_count),
       m_scales(member_count) {
@@ -59,7 +61,6 @@ void Swarm::render(Camera &camera) {
     int colorLocation = glGetUniformLocation(bird_shader, "color");
     glUniform3fv(colorLocation, 1, glm::value_ptr(bird_color));
 
-    //    std::cout << "Rendering " << size() << " birds." << std::endl;
     for (int i = 0; i < size(); i++) {
         auto model =
             Transform::Matrix(m_posistions[i], m_orientations[i], m_scales[i]);

@@ -1,0 +1,67 @@
+
+
+[debug]
+control_camera = false
+
+# print debug messages?
+camera_position = true
+
+[settings]
+width = 1200
+height = 800
+random_seed = 0
+
+[swarm]
+size = 100
+start = [0.0, 50.0, 50.0]
+speed = 25.0
+
+
+
+weight_neighbours = 1.0
+weight_collision = 1.0
+weight_track_point = 1.0
+
+[environment]
+# strength
+gravitation = 9.81
+
+# position + scale
+spheres = [
+    [0.0, 0.0, 0.0, 1.0],
+]
+
+# values to interpolate between
+[interpolation]
+steps = 100
+
+track_point = [
+    [0, 0, 0],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+]
+
+# position + pitch + yaw
+camera = [
+    [-200, 0, 0, 1, 1],
+    [-200, 30, 30, 1, 1],
+    [-200, 30, 30, 1, 1],
+    [-200, 30, 30, 1, 1],
+    [-200, 30, 30, 1, 1],
+    [-200, 30, 60, 1, 1],
+    [-200, 30, 90, 1, 1],
+    [-200, 30, 120, 1, 1],
+    [-150, 30, 150, 1, -45],
+]
+
+# position + strength
+wind = [
+    [0, 1 ,0, 5],
+    [1, 3 ,0, 2],
+    [2, 2 ,0, 20],
+]
+

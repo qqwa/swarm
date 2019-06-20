@@ -1,6 +1,5 @@
 #pragma once
 
-#include "debug_defines.h"
 #include <glm/glm.hpp>
 
 class Camera {
@@ -22,4 +21,5 @@ class Camera {
     void move_left(float value);
     void rotateHorizontal(float value);
     void rotateVertical(float value);
+    void update(int tick);
 };

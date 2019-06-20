@@ -3,6 +3,8 @@ project(gpu-swarm)
 
 add_executable(swarm
     src/main.cpp
+    src/config.cpp
+    src/config.h
     src/util.cpp
     src/util.h
     src/profiler.cpp
@@ -49,3 +51,6 @@ target_link_libraries(swarm PRIVATE OpenCL::OpenCL)
 # opengl
 find_package(OpenGL REQUIRED)
 target_link_libraries(swarm PRIVATE ${OPENGL_LIBRARIES})
+
+#cpptoml
+target_include_directories(swarm PRIVATE ${CMAKE_SOURCE_DIR}/libs/cpptoml/)

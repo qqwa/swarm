@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "debug_defines.h"
 #include "transform.h"
 #include "util.h"
 
@@ -16,7 +15,7 @@ class Wind {
 
   public:
     Wind();
-    void update(float delta);
+    void update(int tick);
     void render(Camera &camera);
     glm::vec3 get_force() const;
 };

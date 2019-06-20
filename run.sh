@@ -8,4 +8,4 @@ cd build
 cmake ..
 make
 cd ..
-./build/swarm
+./build/swarm cfg/default.toml

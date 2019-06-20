@@ -31,7 +31,7 @@ void Gravitation::render(Camera &camera) {
     // draw arrow length dependend on m_strength
     auto s = 5;
     auto transform =
-        Transform({0, 0, 0}, m_direction, {s, s * 1.25 + (m_strength / 10), s});
+        Transform({0, 0, 0}, m_direction, {s, s * (m_strength / 5), s});
     int modelLocation = glGetUniformLocation(arrow_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
                        glm::value_ptr(transform.GetMatrix()));

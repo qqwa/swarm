@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "debug_defines.h"
 #include "transform.h"
 #include "util.h"
 
