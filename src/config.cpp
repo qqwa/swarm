@@ -56,6 +56,13 @@ Config::Config(std::string path) {
         throw std::runtime_error("config error swarm.speed");
     }
 
+    val_d = m_config->get_qualified_as<double>("swarm.initial_spread");
+    if (val_d) {
+        swarm_initial_spread = *val_d;
+    } else {
+        throw std::runtime_error("config error swarm.initial_spread");
+    }
+
     val_d = m_config->get_qualified_as<double>("swarm.weight_neighbours");
     if (val_d) {
         swarm_weight_neighbours = *val_d;
@@ -75,6 +82,13 @@ Config::Config(std::string path) {
         swarm_weight_track_point = *val_d;
     } else {
         throw std::runtime_error("config error swarm.weight_track_point");
+    }
+
+    val_d = m_config->get_qualified_as<double>("swarm.weight_swarm_center");
+    if (val_d) {
+        swarm_weight_swarm_center = *val_d;
+    } else {
+        throw std::runtime_error("config error swarm.weight_swarm_center");
     }
 
     val_d = m_config->get_qualified_as<double>("environment.gravitation");

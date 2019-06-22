@@ -14,11 +14,10 @@ World::World(GLFWwindow *window) {
     m_rotation_speed = 80;
 
     m_camera.setProjection(glm::perspective(
-        glm::radians(45.0f), (float)800 / (float)600, 0.1f, 1000.0f));
+        glm::radians(45.0f), (float)800 / (float)600, 0.1f, 10000.0f));
     m_camera.move_forward(-200);
 
-    m_swarm = Swarm(config->swarm_size);
-    m_swarm.reset_transforms(config->swarm_start, glm::quat(), glm::vec3(0.5));
+    m_swarm = Swarm();
 
     m_wind = Wind();
     m_gravitation = Gravitation(+9.81);

@@ -1,10 +1,12 @@
 
 
 [debug]
-control_camera = false
+control_camera = true
+use_cpu = true
 
 # print debug messages?
-camera_position = true
+camera_position = false
+swarm_reset = true
 
 [settings]
 width = 1200
@@ -12,15 +14,17 @@ height = 800
 random_seed = 0
 
 [swarm]
-size = 100
-start = [0.0, 50.0, 50.0]
+size = 10000
+start = [1500.0, 500.0, 0.0]
 speed = 25.0
 
+initial_spread = 15
 
 
 weight_neighbours = 1.0
 weight_collision = 1.0
 weight_track_point = 1.0
+weight_swarm_center = 1.0
 
 [environment]
 # strength

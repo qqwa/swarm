@@ -17,10 +17,12 @@ class Config {
     int random_seed;
     int swarm_size;
     glm::vec3 swarm_start;
+    float swarm_initial_spread;
     float swarm_speed;
     float swarm_weight_neighbours;
     float swarm_weight_collision;
     float swarm_weight_track_point;
+    float swarm_weight_swarm_center;
     float gravitation;
     std::vector<glm::vec3> spheres;
 
