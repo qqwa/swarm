@@ -16,4 +16,5 @@ class TrackPoint {
     TrackPoint();
     void update(int tick);
     void render(Camera &camera);
+    glm::vec3 get_pos() const;
 };

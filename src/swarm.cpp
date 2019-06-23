@@ -37,17 +37,26 @@ void Swarm::reset() {
     // all birds get 4 randomly assigned neighbours
     auto gen_neighbour = std::uniform_int_distribution<size_t>(0, count - 1);
     for (int i = 0; i < count; i++) {
-        m_neighbors.push_back({gen_neighbour(m_random), gen_neighbour(m_random),
-                               gen_neighbour(m_random),
-                               gen_neighbour(m_random)});
+        std::vector<size_t> tmp;
+
+        while (tmp.size() != 4) {
+            auto number = gen_neighbour(m_random);
+            if (number != i) {
+                tmp.push_back(number);
+            } else {
+                std::cout << "tried to set neighbour to self" << std::endl;
+            }
+        }
+        m_neighbors.push_back(tmp);
     }
 
     // run swarm simulation for 10_000 ticks with track_point position =
     // swarm_start so that neighbours find to another
     update_swarm_center();
-    for (int i = 0; i < 10000; i++) {
-        simulate_tick(config->swarm_start);
-    }
+    // for (int i = 0; i < 5000; i++) {
+    //     simulate_tick(config->swarm_start);
+    // }
+    // throw std::runtime_error("debug!");
 }
 
 size_t Swarm::size() { return m_posistions.size(); }
@@ -77,6 +86,7 @@ void Swarm::simulate_tick(glm::vec3 track_point) {
 // programmed as it were a "kernel"
 void Swarm::simulate_cpu(glm::vec3 track_point) {
     glm::vec3 update_swarm_center = {0, 0, 0};
+    // std::cout << "simulate cpu" << std::endl;
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
 
@@ -84,10 +94,13 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         // 1. check distance to neighbours and update them
         /////////////////////////////////////////////////////////////////////////////
 
+        auto sum_distance_to_neighbours = 0.0f;
+
         // find potential canidates
         size_t new_neighbours[] = {0, 0, 0, 0};
-        for (int n = 0; n < 4; i++) { // find best canidate of neighbour 1
+        for (int n = 0; n < 4; n++) { // find best canidate of neighbour 1
             auto neighbour = m_neighbors[i][n];
+            // std::cout << "neighbor" << n << ": " << neighbour << std::endl;
             auto dist = glm::length(m_posistions[neighbour] - pos);
             auto neighbour1 = m_neighbors[neighbour][0];
             auto neighbour2 = m_neighbors[neighbour][1];
@@ -110,47 +123,64 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
                 dist = glm::length(m_posistions[neighbour4] - pos);
                 new_neighbours[n] = neighbour4;
             }
+            sum_distance_to_neighbours += dist;
         }
 
         // update own neighbours, if it would result in a duplicate dont update
         if (new_neighbours[0] != m_neighbors[i][1] &&
             new_neighbours[0] != m_neighbors[i][2] &&
-            new_neighbours[0] != m_neighbors[i][3]) {
+            new_neighbours[0] != m_neighbors[i][3] && new_neighbours[0] != i) {
             m_neighbors[i][0] = new_neighbours[0];
         }
 
         if (new_neighbours[1] != m_neighbors[i][0] &&
             new_neighbours[1] != m_neighbors[i][2] &&
-            new_neighbours[1] != m_neighbors[i][3]) {
+            new_neighbours[1] != m_neighbors[i][3] && new_neighbours[1] != i) {
             m_neighbors[i][1] = new_neighbours[1];
         }
 
         if (new_neighbours[2] != m_neighbors[i][0] &&
             new_neighbours[2] != m_neighbors[i][1] &&
-            new_neighbours[2] != m_neighbors[i][3]) {
+            new_neighbours[2] != m_neighbors[i][3] && new_neighbours[2] != i) {
             m_neighbors[i][2] = new_neighbours[2];
         }
 
         if (new_neighbours[3] != m_neighbors[i][0] &&
             new_neighbours[3] != m_neighbors[i][1] &&
-            new_neighbours[3] != m_neighbors[i][2]) {
+            new_neighbours[3] != m_neighbors[i][2] && new_neighbours[3] != i) {
             m_neighbors[i][3] = new_neighbours[3];
         }
 
         /////////////////////////////////////////////////////////////////////////////
         // 2. try to center between neighbors
         /////////////////////////////////////////////////////////////////////////////
-        auto center_neighbours_direction = glm::normalize(
+
+        auto center_neighbours_direction =
             (m_posistions[new_neighbours[0]] + m_posistions[new_neighbours[1]] +
              m_posistions[new_neighbours[2]] +
              m_posistions[new_neighbours[3]]) /
                 4.0f -
-            pos);
+            pos;
+        if (0.01 < glm::length(center_neighbours_direction)) {
+            center_neighbours_direction =
+                glm::normalize(center_neighbours_direction);
+        } else {
+            std::cout << "lenght was to small" << std::endl;
+            center_neighbours_direction = glm::vec3{0, 0, 0};
+        }
+
+        // if sum of distances to neighbours are to small, we need to fly away
+        // from the swarm center to spread again
+        auto spread_direction = glm::vec3(0, 0, 0);
+        if (sum_distance_to_neighbours < 10.0) {
+            spread_direction = glm::normalize(m_swarm_center - pos);
+        }
 
         /////////////////////////////////////////////////////////////////////////////
         // 3. fly in direction of track point
         /////////////////////////////////////////////////////////////////////////////
-        auto tp_direction = glm::normalize(track_point - pos);
+        // dont normalize because the length matters?
+        auto tp_direction = track_point - m_swarm_center;
 
         /////////////////////////////////////////////////////////////////////////////
         // 4. check if collideable object is near, if yes fly away from it
@@ -166,7 +196,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         // 6. apply 2-6 relativ to setted ratios
         /////////////////////////////////////////////////////////////////////////////
         auto target_direction = glm::normalize(
-            config->swarm_weight_neighbours * center_neighbours_direction +
+            25.0f * spread_direction * glm::length(m_swarm_center - pos) +
+            // config->swarm_weight_neighbours * center_neighbours_direction +
             config->swarm_weight_track_point * tp_direction +
             config->swarm_weight_swarm_center * swarm_center_direction);
 
@@ -174,8 +205,21 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         auto final_direction = target_direction;
         auto pos_update = final_direction * config->swarm_speed * 0.0166667f;
 
-        m_orientations[i] = {final_direction};
         m_posistions[i] += pos_update;
+        m_orientations[i] = {final_direction};
+
+        // std::cout << "final_direction " << glm::to_string(final_direction)
+        //           << std::endl
+        //           << "center_neighbours_direction " <<
+        //           glm::to_string(center_neighbours_direction)
+        //           << std::endl
+        //           << "tp_direction " << glm::to_string(tp_direction)
+        //           << std::endl
+        //           << "swarm_center_direction " <<
+        //           glm::to_string(swarm_center_direction)
+        //           << std::endl
+        //           << "pos_update " << glm::to_string(pos_update)
+        //           << std::endl;
 
         /////////////////////////////////////////////////////////////////////////////
         // 7. update swarm center, with change vector of all members

@@ -11,20 +11,20 @@ swarm_reset = true
 [settings]
 width = 1200
 height = 800
-random_seed = 0
+random_seed = 110
 
 [swarm]
-size = 10000
-start = [1500.0, 500.0, 0.0]
+size = 100
+start = [200.0, 150.0, 0.0]
 speed = 25.0
 
-initial_spread = 15
+initial_spread = 40
 
 
-weight_neighbours = 1.0
+weight_neighbours = 2.0
 weight_collision = 1.0
-weight_track_point = 1.0
-weight_swarm_center = 1.0
+weight_track_point = 3.0
+weight_swarm_center = 1.5
 
 [environment]
 # strength
@@ -41,6 +41,40 @@ steps = 100
 
 track_point = [
     [0, 0, 0],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
+    [0, 50, 50],
+    [0, 100, 0],
+    [0, 50, 50],
     [0, 100, 0],
     [0, 50, 50],
     [0, 100, 0],

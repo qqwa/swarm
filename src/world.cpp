@@ -58,7 +58,7 @@ void World::update(float delta) {
     m_wind.update(tick);
     m_track_point.update(tick);
 
-    m_swarm.update(delta);
+    m_swarm.simulate_tick(m_track_point.get_pos());
     tick++;
 }
 

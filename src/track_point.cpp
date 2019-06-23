@@ -31,3 +31,5 @@ void TrackPoint::render(Camera &camera) {
     glDrawElements(GL_TRIANGLES, track_point_mesh.indicesCount, GL_UNSIGNED_INT,
                    0);
 }
+
+glm::vec3 TrackPoint::get_pos() const { return m_transform.GetPosition(); }
