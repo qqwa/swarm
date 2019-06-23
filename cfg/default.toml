@@ -3,6 +3,7 @@
 [debug]
 control_camera = true
 use_cpu = true
+manuel_tick = true
 
 # print debug messages?
 camera_position = false

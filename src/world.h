@@ -29,6 +29,8 @@ class World {
 
     int tick;
 
+    bool pressed_t;
+
   public:
     World(GLFWwindow *window);
     void update(float delta);
