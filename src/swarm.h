@@ -14,6 +14,11 @@ class Swarm {
     util::MeshMetaData bird_mesh;
     GLuint bird_shader;
 
+
+    glm::vec3 center_color;
+    util::MeshMetaData center_mesh;
+    GLuint center_shader;
+
     std::vector<glm::vec3> m_posistions;
     std::vector<glm::quat> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..

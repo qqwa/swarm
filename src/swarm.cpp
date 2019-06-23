@@ -11,6 +11,10 @@ Swarm::Swarm() {
     bird_mesh = util::loadMesh("res/bird.obj");
     bird_shader = util::getShader("res/shader/default");
 
+    center_color = {1.0, 0.7, 1.0};
+    center_mesh = util::loadMesh("res/sphere.obj");
+    center_shader = util::getShader("res/shader/default");
+
     reset();
 }
 
@@ -241,7 +245,7 @@ void Swarm::update(float delta) {
 }
 
 void Swarm::render(Camera &camera) {
-
+    // draw birds
     glUseProgram(bird_shader);
     int viewLocation = glGetUniformLocation(bird_shader, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
@@ -261,4 +265,25 @@ void Swarm::render(Camera &camera) {
         glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount, GL_UNSIGNED_INT,
                        0);
     }
+
+    // draw center point
+
+    glUseProgram(center_shader);
+    viewLocation = glGetUniformLocation(center_shader, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetTransform()));
+    projectionLocation =
+        glGetUniformLocation(center_shader, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetProjection()));
+    colorLocation = glGetUniformLocation(center_shader, "color");
+    glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
+
+    auto center = Transform(m_swarm_center, glm::vec3{0,0,0}, glm::vec3{5, 5, 5});
+    int modelLocation = glGetUniformLocation(center_shader, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
+                       glm::value_ptr(center.GetMatrix()));
+    glBindVertexArray(center_mesh.vao);
+    glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT,
+                   0);
 }
