@@ -228,7 +228,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         /////////////////////////////////////////////////////////////////////////////
         // 7. update swarm center, with change vector of all members
         /////////////////////////////////////////////////////////////////////////////
-        update_swarm_center += pos_update;
+        update_swarm_center += pos_update/(float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
 }
