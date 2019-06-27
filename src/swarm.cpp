@@ -80,11 +80,16 @@ void Swarm::update_swarm_center() {
 }
 
 void Swarm::simulate_tick(glm::vec3 track_point) {
+    update_neighbours();
     if (config->debug("use_cpu")) {
         simulate_cpu(track_point);
     } else {
         simulate_gpu();
     }
+}
+
+void Swarm::update_neighbours() {
+
 }
 
 // programmed as it were a "kernel"
@@ -98,87 +103,9 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         // 1. check distance to neighbours and update them
         /////////////////////////////////////////////////////////////////////////////
 
-        auto sum_distance_to_neighbours = 0.0f;
-
-        // find potential canidates
-        size_t new_neighbours[] = {0, 0, 0, 0};
-        for (int n = 0; n < 4; n++) { // find best canidate of neighbour 1
-            auto neighbour = m_neighbors[i][n];
-            // std::cout << "neighbor" << n << ": " << neighbour << std::endl;
-            auto dist = glm::length(m_posistions[neighbour] - pos);
-            auto neighbour1 = m_neighbors[neighbour][0];
-            auto neighbour2 = m_neighbors[neighbour][1];
-            auto neighbour3 = m_neighbors[neighbour][2];
-            auto neighbour4 = m_neighbors[neighbour][3];
-
-            if (glm::length(m_posistions[neighbour1] - pos) < dist) {
-                dist = glm::length(m_posistions[neighbour1] - pos);
-                new_neighbours[n] = neighbour1;
-            }
-            if (glm::length(m_posistions[neighbour2] - pos) < dist) {
-                dist = glm::length(m_posistions[neighbour2] - pos);
-                new_neighbours[n] = neighbour2;
-            }
-            if (glm::length(m_posistions[neighbour3] - pos) < dist) {
-                dist = glm::length(m_posistions[neighbour3] - pos);
-                new_neighbours[n] = neighbour3;
-            }
-            if (glm::length(m_posistions[neighbour4] - pos) < dist) {
-                dist = glm::length(m_posistions[neighbour4] - pos);
-                new_neighbours[n] = neighbour4;
-            }
-            sum_distance_to_neighbours += dist;
-        }
-
-        // update own neighbours, if it would result in a duplicate dont update
-        if (new_neighbours[0] != m_neighbors[i][1] &&
-            new_neighbours[0] != m_neighbors[i][2] &&
-            new_neighbours[0] != m_neighbors[i][3] && new_neighbours[0] != i) {
-            m_neighbors[i][0] = new_neighbours[0];
-        }
-
-        if (new_neighbours[1] != m_neighbors[i][0] &&
-            new_neighbours[1] != m_neighbors[i][2] &&
-            new_neighbours[1] != m_neighbors[i][3] && new_neighbours[1] != i) {
-            m_neighbors[i][1] = new_neighbours[1];
-        }
-
-        if (new_neighbours[2] != m_neighbors[i][0] &&
-            new_neighbours[2] != m_neighbors[i][1] &&
-            new_neighbours[2] != m_neighbors[i][3] && new_neighbours[2] != i) {
-            m_neighbors[i][2] = new_neighbours[2];
-        }
-
-        if (new_neighbours[3] != m_neighbors[i][0] &&
-            new_neighbours[3] != m_neighbors[i][1] &&
-            new_neighbours[3] != m_neighbors[i][2] && new_neighbours[3] != i) {
-            m_neighbors[i][3] = new_neighbours[3];
-        }
-
         /////////////////////////////////////////////////////////////////////////////
         // 2. try to center between neighbors
         /////////////////////////////////////////////////////////////////////////////
-
-        auto center_neighbours_direction =
-            (m_posistions[new_neighbours[0]] + m_posistions[new_neighbours[1]] +
-             m_posistions[new_neighbours[2]] +
-             m_posistions[new_neighbours[3]]) /
-                4.0f -
-            pos;
-        if (0.01 < glm::length(center_neighbours_direction)) {
-            center_neighbours_direction =
-                glm::normalize(center_neighbours_direction);
-        } else {
-            std::cout << "lenght was to small" << std::endl;
-            center_neighbours_direction = glm::vec3{0, 0, 0};
-        }
-
-        // if sum of distances to neighbours are to small, we need to fly away
-        // from the swarm center to spread again
-        auto spread_direction = glm::vec3(0, 0, 0);
-        if (sum_distance_to_neighbours < 10.0) {
-            spread_direction = glm::normalize(m_swarm_center - pos);
-        }
 
         /////////////////////////////////////////////////////////////////////////////
         // 3. fly in direction of track point
@@ -200,7 +127,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         // 6. apply 2-6 relativ to setted ratios
         /////////////////////////////////////////////////////////////////////////////
         auto target_direction = glm::normalize(
-            25.0f * spread_direction * glm::length(m_swarm_center - pos) +
+            // 25.0f * spread_direction * glm::length(m_swarm_center - pos) +
             // config->swarm_weight_neighbours * center_neighbours_direction +
             config->swarm_weight_track_point * tp_direction +
             config->swarm_weight_swarm_center * swarm_center_direction);

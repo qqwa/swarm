@@ -27,6 +27,7 @@ class Swarm {
 
     std::mt19937_64 m_random;
     void update_swarm_center();
+    void update_neighbours();
     void simulate_cpu(glm::vec3 track_point);
     void simulate_gpu();
 
