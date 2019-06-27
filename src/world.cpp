@@ -15,10 +15,11 @@ World::World(GLFWwindow *window) {
 
     m_camera.setProjection(glm::perspective(
         glm::radians(45.0f), (float)800 / (float)600, 0.1f, 10000.0f));
-    m_camera.move_forward(-200);
+    m_camera.update(0);
 
     m_swarm = Swarm();
 
+    tick = 0;
     m_wind = Wind();
     m_gravitation = Gravitation(+9.81);
 
