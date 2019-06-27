@@ -89,7 +89,36 @@ void Swarm::simulate_tick(glm::vec3 track_point) {
 }
 
 void Swarm::update_neighbours() {
+    for (int i = 0; i < config->swarm_size; i++) {
+        auto pos = m_posistions[i];
+        std::vector<size_t> neigbours = {0, 1, 2, 3};
+        std::vector<float> distances = {glm::length(m_posistions[0] - pos),
+                                        glm::length(m_posistions[1] - pos),
+                                        glm::length(m_posistions[2] - pos),
+                                        glm::length(m_posistions[3] - pos)};
 
+        int largest = 0;
+        for (int j = 1; j < 4; j++) {
+            if (distances[largest] < distances[j]) {
+                largest = j;
+            }
+        }
+
+        for (int j = 4; j < config->swarm_size; j++) {
+            auto dist = glm::length(m_posistions[j] - pos);
+            if (distances[largest] < dist) {
+                distances[largest] = dist;
+                neigbours[largest] = j;
+                int largest = 0;
+                for (int j = 1; j < 4; j++) {
+                    if (distances[largest] < distances[j]) {
+                        largest = j;
+                    }
+                }
+            }
+        }
+        m_neighbors[i] = neigbours;
+    }
 }
 
 // programmed as it were a "kernel"
@@ -155,7 +184,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         /////////////////////////////////////////////////////////////////////////////
         // 7. update swarm center, with change vector of all members
         /////////////////////////////////////////////////////////////////////////////
-        update_swarm_center += pos_update/(float)config->swarm_size;
+        update_swarm_center += pos_update / (float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
 }
@@ -199,18 +228,17 @@ void Swarm::render(Camera &camera) {
     viewLocation = glGetUniformLocation(center_shader, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
                        glm::value_ptr(camera.GetTransform()));
-    projectionLocation =
-        glGetUniformLocation(center_shader, "projection");
+    projectionLocation = glGetUniformLocation(center_shader, "projection");
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
                        glm::value_ptr(camera.GetProjection()));
     colorLocation = glGetUniformLocation(center_shader, "color");
     glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
 
-    auto center = Transform(m_swarm_center, glm::vec3{0,0,0}, glm::vec3{5, 5, 5});
+    auto center =
+        Transform(m_swarm_center, glm::vec3{0, 0, 0}, glm::vec3{5, 5, 5});
     int modelLocation = glGetUniformLocation(center_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
                        glm::value_ptr(center.GetMatrix()));
     glBindVertexArray(center_mesh.vao);
-    glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT,
-                   0);
+    glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT, 0);
 }
