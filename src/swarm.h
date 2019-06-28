@@ -19,7 +19,7 @@ class Swarm {
     GLuint center_shader;
 
     std::vector<glm::vec3> m_posistions;
-    std::vector<glm::quat> m_orientations;
+    std::vector<glm::vec3> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..
     std::vector<std::vector<size_t>> m_neighbors;
     glm::vec3 m_swarm_center;
@@ -36,6 +36,5 @@ class Swarm {
     void reset();
     size_t size();
     void simulate_tick(glm::vec3 track_point);
-    void update(float delta);
     void render(Camera &camera);
 };

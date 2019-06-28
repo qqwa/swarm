@@ -34,7 +34,7 @@ void Swarm::reset() {
         auto pos = glm::vec3{gen_coord(m_random), gen_coord(m_random),
                              gen_coord(m_random)};
         m_posistions.push_back(config->swarm_start + pos);
-        m_orientations.push_back(glm::quat());
+        m_orientations.push_back(glm::vec3{1,1,1});
         m_scales.push_back({1, 1, 1});
     }
 
@@ -227,7 +227,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
             swarm_center_direction);
 
         // TODO: acceleration, realistic direction change, etc..
-        auto final_direction = target_direction;
+        auto final_direction = m_orientations[i] + target_direction*0.1f*0.0166667f;
         auto pos_update = final_direction * config->swarm_speed * 0.0166667f;
 
         m_posistions[i] += pos_update;
@@ -257,15 +257,6 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
 }
 
 void Swarm::simulate_gpu() {}
-
-void Swarm::update(float delta) {
-    for (int i = 0; i < size(); i++) {
-        m_posistions[i] += glm::vec3(0, 0, 1 * delta);
-        m_orientations[i] = glm::rotate(
-            m_orientations[i], glm::radians(5 * delta), glm::vec3(1, 0, 0));
-        m_orientations[i] = glm::normalize(m_orientations[i]);
-    }
-}
 
 void Swarm::render(Camera &camera) {
     // draw birds
