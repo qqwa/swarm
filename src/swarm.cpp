@@ -34,7 +34,7 @@ void Swarm::reset() {
         auto pos = glm::vec3{gen_coord(m_random), gen_coord(m_random),
                              gen_coord(m_random)};
         m_posistions.push_back(config->swarm_start + pos);
-        m_orientations.push_back(glm::vec3{1,1,1});
+        m_orientations.push_back(glm::vec3{1, 1, 1});
         m_scales.push_back({1, 1, 1});
     }
 
@@ -93,9 +93,9 @@ void Swarm::update_neighbours() {
         auto pos = m_posistions[i];
         std::vector<size_t> neigbours = {};
         std::vector<float> distances = {};
-        
+
         for (auto j = 0; neigbours.size() != 4; j++) {
-            if(j != i) {
+            if (j != i) {
                 neigbours.push_back(j);
                 distances.push_back(glm::length(m_posistions[0] - pos));
             }
@@ -190,8 +190,13 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
                                      neighbour_dist_factor);
         }
 
-        auto neihgour_factor = std::max(glm::length(vec_neigbour0 + vec_neigbour1 + vec_neigbour2 + vec_neigbour3)/4.0f, 10.0f);
-        auto neighbour_correction = glm::normalize(vec_neigbour0 + vec_neigbour1 + vec_neigbour2 + vec_neigbour3);
+        auto neihgour_factor =
+            std::max(glm::length(vec_neigbour0 + vec_neigbour1 + vec_neigbour2 +
+                                 vec_neigbour3) /
+                         4.0f,
+                     10.0f);
+        auto neighbour_correction = glm::normalize(
+            vec_neigbour0 + vec_neigbour1 + vec_neigbour2 + vec_neigbour3);
 
         /////////////////////////////////////////////////////////////////////////////
         // 2. try to center between neighbors
@@ -220,37 +225,39 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         tp_direction = glm::normalize(tp_direction);
         swarm_center_direction = glm::normalize(swarm_center_direction);
 
-
         neighbour_correction *= config->swarm_weight_neighbours;
         tp_direction *= config->swarm_weight_track_point;
         swarm_center_direction *= config->swarm_weight_swarm_center;
 
         auto target_direction = glm::normalize(
             // 25.0f * spread_direction * glm::length(m_swarm_center - pos) +
-            neighbour_correction +
-            tp_direction +
-            swarm_center_direction);
+            neighbour_correction + tp_direction + swarm_center_direction);
 
         // TODO: acceleration, realistic direction change, etc..
-        auto final_direction = m_orientations[i] + target_direction*0.33f*0.0166667f;
+        auto final_direction =
+            m_orientations[i] + target_direction * 0.33f * 0.0166667f;
         final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * 0.0166667f;
 
         m_posistions[i] += pos_update;
         m_orientations[i] = {final_direction};
 
-        if(i == 0) {
-            std::cout 
-                      << "pos: " << glm::to_string(pos) << std::endl
-                      << "center: " << glm::to_string(m_swarm_center) << std::endl
-                      << "neighbour_correction: " << glm::to_string(neighbour_correction) << std::endl
-                      << "  n0 :" << dist_neighbour0 << std::endl 
-                      << "  n1 :" << dist_neighbour1 << std::endl 
-                      << "  n2 :" << dist_neighbour2 << std::endl 
-                      << "  n3 :" << dist_neighbour3 << std::endl 
-                      << "center_direction:     " << glm::to_string(swarm_center_direction) << std::endl
-                      << "tp_direction:         " << glm::to_string(tp_direction) << std::endl
-                      << "final_direction       " << glm::to_string(final_direction) << std::endl
+        if (i == 0) {
+            std::cout << "pos: " << glm::to_string(pos) << std::endl
+                      << "center: " << glm::to_string(m_swarm_center)
+                      << std::endl
+                      << "neighbour_correction: "
+                      << glm::to_string(neighbour_correction) << std::endl
+                      << "  n0 :" << dist_neighbour0 << std::endl
+                      << "  n1 :" << dist_neighbour1 << std::endl
+                      << "  n2 :" << dist_neighbour2 << std::endl
+                      << "  n3 :" << dist_neighbour3 << std::endl
+                      << "center_direction:     "
+                      << glm::to_string(swarm_center_direction) << std::endl
+                      << "tp_direction:         "
+                      << glm::to_string(tp_direction) << std::endl
+                      << "final_direction       "
+                      << glm::to_string(final_direction) << std::endl
                       << "" << std::endl;
         }
 
