@@ -1,8 +1,10 @@
 #pragma once
 
 #include "camera.h"
+#include "gravitation.h"
 #include "transform.h"
 #include "util.h"
+#include "wind.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <random>
@@ -29,7 +31,8 @@ class Swarm {
     std::mt19937_64 m_random;
     void update_swarm_center();
     void update_neighbours();
-    void simulate_cpu(glm::vec3 track_point);
+    void simulate_cpu(glm::vec3 track_point, Wind wind,
+                      Gravitation gravitation);
     void simulate_gpu();
 
   public:
@@ -37,6 +40,7 @@ class Swarm {
     Swarm(size_t member_count);
     void reset();
     size_t size();
-    void simulate_tick(glm::vec3 track_point);
+    void simulate_tick(glm::vec3 track_point, Wind wind,
+                       Gravitation gravitation);
     void render(Camera &camera);
 };

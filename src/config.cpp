@@ -63,6 +63,13 @@ Config::Config(std::string path) {
         throw std::runtime_error("config error swarm.initial_spread");
     }
 
+    val_d = m_config->get_qualified_as<double>("settings.tick");
+    if (val_d) {
+        tick = *val_d;
+    } else {
+        throw std::runtime_error("config error settings.tick");
+    }
+
     val_d = m_config->get_qualified_as<double>("swarm.weight_neighbours");
     if (val_d) {
         swarm_weight_neighbours = *val_d;
@@ -240,7 +247,7 @@ float Config::get_camera_yaw(int tick) {
     }
 }
 
-glm::quat Config::get_wind_dir(int tick) {
+glm::vec3 Config::get_wind_dir(int tick) {
     auto n0 = tick / steps;
     auto n1 = n0 + 1;
     auto ratio = (float)(tick % steps) / steps;

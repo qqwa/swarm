@@ -10,7 +10,7 @@ class Wind {
     util::MeshMetaData arrow_mesh;
     GLuint arrow_shader;
 
-    glm::quat m_direction;
+    glm::vec3 m_direction;
     float m_strength;
 
   public:

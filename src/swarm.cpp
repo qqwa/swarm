@@ -104,10 +104,11 @@ void Swarm::update_swarm_center() {
     m_swarm_center = {x, y, z};
 }
 
-void Swarm::simulate_tick(glm::vec3 track_point) {
+void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
+                          Gravitation gravitation) {
     update_neighbours();
     if (config->debug("use_cpu")) {
-        simulate_cpu(track_point);
+        simulate_cpu(track_point, wind, gravitation);
     } else {
         simulate_gpu();
     }
@@ -151,9 +152,20 @@ void Swarm::update_neighbours() {
 }
 
 // programmed as it were a "kernel"
-void Swarm::simulate_cpu(glm::vec3 track_point) {
+void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
+                         Gravitation gravitation) {
     glm::vec3 update_swarm_center = {0, 0, 0};
     // std::cout << "simulate cpu" << std::endl;
+
+    // apply external forces
+    for (int i = 0; i < config->swarm_size; i++) {
+        auto pos = m_posistions[i];
+        pos += wind.get_force() * config->tick;
+
+        m_posistions[i] = pos;
+    }
+    m_swarm_center += wind.get_force() * config->tick;
+
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
 
@@ -260,9 +272,9 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
 
         // TODO: acceleration, realistic direction change, etc..
         auto final_direction =
-            m_orientations[i] + target_direction * 0.33f * 0.0166667f;
+            m_orientations[i] + target_direction * 0.33f * config->tick;
         final_direction = glm::normalize(final_direction);
-        auto pos_update = final_direction * config->swarm_speed * 0.0166667f;
+        auto pos_update = final_direction * config->swarm_speed * config->tick;
 
         m_posistions[i] += pos_update;
         m_orientations[i] = {final_direction};

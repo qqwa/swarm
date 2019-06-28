@@ -63,14 +63,15 @@ void World::update(float delta) {
 
     if (config->debug("manuel_tick")) {
         if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_PRESS && !pressed_t) {
-            m_swarm.simulate_tick(m_track_point.get_pos());
+            m_swarm.simulate_tick(m_track_point.get_pos(), m_wind,
+                                  m_gravitation);
             pressed_t = true;
         }
         if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_RELEASE && pressed_t) {
             pressed_t = false;
         }
     } else {
-        m_swarm.simulate_tick(m_track_point.get_pos());
+        m_swarm.simulate_tick(m_track_point.get_pos(), m_wind, m_gravitation);
     }
     tick++;
 }

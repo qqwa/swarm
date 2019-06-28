@@ -15,6 +15,7 @@ class Config {
     int width;
     int height;
     int random_seed;
+    float tick;
     int swarm_size;
     glm::vec3 swarm_start;
     float swarm_initial_spread;
@@ -34,7 +35,7 @@ class Config {
     glm::vec3 get_camera_pos(int tick);
     float get_camera_pitch(int tick);
     float get_camera_yaw(int tick);
-    glm::quat get_wind_dir(int tick);
+    glm::vec3 get_wind_dir(int tick);
     float get_wind_strength(int tick);
 };
 
