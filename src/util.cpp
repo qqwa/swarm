@@ -109,6 +109,8 @@ GLuint util::getShader(std::string path) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    std::cout << "loaded shader: " << path << std::endl;
+
     return program;
 }
 

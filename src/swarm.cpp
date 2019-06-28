@@ -7,15 +7,40 @@
 #include <random>
 
 Swarm::Swarm() {
+    reset();
+
     bird_color = {0.0, 0.0, 0.0};
     bird_mesh = util::loadMesh("res/bird.obj");
-    bird_shader = util::getShader("res/shader/default");
+    if (config->debug("instance_rendering")) {
+        bird_shader = util::getShader("res/shader/instance");
+
+        glGenBuffers(1, &instance_pos_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_posistions.data(), GL_DYNAMIC_DRAW);
+
+        glGenBuffers(1, &instance_dir_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_orientations.data(), GL_DYNAMIC_DRAW);
+
+        glBindVertexArray(bird_mesh.vao);
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribDivisor(1, 1);
+
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribDivisor(2, 1);
+    } else {
+        bird_shader = util::getShader("res/shader/default");
+    }
 
     center_color = {1.0, 0.7, 1.0};
     center_mesh = util::loadMesh("res/sphere.obj");
     center_shader = util::getShader("res/shader/default");
-
-    reset();
 }
 
 void Swarm::reset() {
@@ -242,7 +267,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         m_posistions[i] += pos_update;
         m_orientations[i] = {final_direction};
 
-        if (i == 0) {
+        if (i == 0 && config->debug("print_bird_vectors")) {
             std::cout << "pos: " << glm::to_string(pos) << std::endl
                       << "center: " << glm::to_string(m_swarm_center)
                       << std::endl
@@ -274,6 +299,7 @@ void Swarm::simulate_gpu() {}
 void Swarm::render(Camera &camera) {
     // draw birds
     glUseProgram(bird_shader);
+
     int viewLocation = glGetUniformLocation(bird_shader, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
                        glm::value_ptr(camera.GetTransform()));
@@ -283,16 +309,35 @@ void Swarm::render(Camera &camera) {
     int colorLocation = glGetUniformLocation(bird_shader, "color");
     glUniform3fv(colorLocation, 1, glm::value_ptr(bird_color));
 
-    for (int i = 0; i < size(); i++) {
-        auto model =
-            Transform::Matrix(m_posistions[i], m_orientations[i], m_scales[i]);
-        int modelLocation = glGetUniformLocation(bird_shader, "model");
-        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-        glBindVertexArray(bird_mesh.vao);
-        glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount, GL_UNSIGNED_INT,
-                       0);
-    }
+    if (config->debug("instance_rendering")) {
+        // update instance buffers
+        glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_posistions.data(), GL_DYNAMIC_DRAW);
 
+        glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_orientations.data(), GL_DYNAMIC_DRAW);
+
+        // draw swarm
+        glBindVertexArray(bird_mesh.vao);
+        glDrawElementsInstanced(GL_TRIANGLES, bird_mesh.indicesCount,
+                                GL_UNSIGNED_INT, 0, config->swarm_size);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    } else {
+        for (int i = 0; i < size(); i++) {
+            auto model = glm::lookAt(m_posistions[i],
+                                     m_posistions[i] - m_orientations[i],
+                                     {0.0f, 1.0f, 0.0f});
+            model = glm::inverse(model);
+            int modelLocation = glGetUniformLocation(bird_shader, "model");
+            glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
+                               glm::value_ptr(model));
+            glBindVertexArray(bird_mesh.vao);
+            glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount,
+                           GL_UNSIGNED_INT, 0);
+        }
+    }
     // draw center point
 
     glUseProgram(center_shader);

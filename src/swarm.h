@@ -13,6 +13,8 @@ class Swarm {
     glm::vec3 bird_color;
     util::MeshMetaData bird_mesh;
     GLuint bird_shader;
+    GLuint instance_pos_vbo;
+    GLuint instance_dir_vbo;
 
     glm::vec3 center_color;
     util::MeshMetaData center_mesh;
