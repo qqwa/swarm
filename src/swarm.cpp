@@ -135,10 +135,10 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         /////////////////////////////////////////////////////////////////////////////
         // 1. try to keep distance x between all neighbours
         /////////////////////////////////////////////////////////////////////////////
-        auto neighbour0 = pos - m_posistions[m_neighbors[i][0]];
-        auto neighbour1 = pos - m_posistions[m_neighbors[i][1]];
-        auto neighbour2 = pos - m_posistions[m_neighbors[i][2]];
-        auto neighbour3 = pos - m_posistions[m_neighbors[i][3]];
+        auto neighbour0 = m_posistions[m_neighbors[i][0]] - pos;
+        auto neighbour1 = m_posistions[m_neighbors[i][1]] - pos;
+        auto neighbour2 = m_posistions[m_neighbors[i][2]] - pos;
+        auto neighbour3 = m_posistions[m_neighbors[i][3]] - pos;
 
         auto dist_neighbour0 = glm::length(neighbour0);
         auto dist_neighbour1 = glm::length(neighbour1);
@@ -151,8 +151,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         auto vec_neigbour3 = glm::vec3(0, 0, 0);
 
         auto neighbour_dist_factor = 5.0;
-        auto neighbour_dist_ideal = 10.0;
-        auto neighbour_dist_toleration = 2.5;
+        auto neighbour_dist_ideal = 100.0;
+        auto neighbour_dist_toleration = 25.0;
 
         if (dist_neighbour0 <
                 neighbour_dist_ideal - neighbour_dist_toleration ||
@@ -216,6 +216,11 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
         /////////////////////////////////////////////////////////////////////////////
         // 6. apply 2-6 relativ to setted ratios
         /////////////////////////////////////////////////////////////////////////////
+        neighbour_correction = glm::normalize(neighbour_correction);
+        tp_direction = glm::normalize(tp_direction);
+        swarm_center_direction = glm::normalize(swarm_center_direction);
+
+
         neighbour_correction *= config->swarm_weight_neighbours;
         tp_direction *= config->swarm_weight_track_point;
         swarm_center_direction *= config->swarm_weight_swarm_center;
@@ -227,7 +232,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point) {
             swarm_center_direction);
 
         // TODO: acceleration, realistic direction change, etc..
-        auto final_direction = m_orientations[i] + target_direction*0.1f*0.0166667f;
+        auto final_direction = m_orientations[i] + target_direction*0.33f*0.0166667f;
+        final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * 0.0166667f;
 
         m_posistions[i] += pos_update;
