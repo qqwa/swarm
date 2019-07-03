@@ -28,7 +28,7 @@ speed = 25.0
 initial_spread = 40
 
 
-weight_neighbours = 2.0
+weight_neighbors = 2.0
 weight_collision = 1.0
 weight_track_point = 3.0
 weight_swarm_center = 2.0

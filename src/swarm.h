@@ -30,7 +30,7 @@ class Swarm {
 
     std::mt19937_64 m_random;
     void update_swarm_center();
-    void update_neighbours();
+    void update_neighbors();
     void update_neighbors_incremental();
     void simulate_cpu(glm::vec3 track_point, Wind wind,
                       Gravitation gravitation);

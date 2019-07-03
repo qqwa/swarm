@@ -63,28 +63,28 @@ void Swarm::reset() {
         m_scales.push_back({1, 1, 1});
     }
 
-    // all birds get 4 randomly assigned neighbours
-    auto gen_neighbour = std::uniform_int_distribution<size_t>(0, count - 1);
+    // all birds get 4 randomly assigned neighbors
+    auto gen_neighbor = std::uniform_int_distribution<size_t>(0, count - 1);
     for (int i = 0; i < count; i++) {
         std::vector<size_t> tmp;
 
         while (tmp.size() != 4) {
-            auto number = gen_neighbour(m_random);
+            auto number = gen_neighbor(m_random);
             if (number != i) {
                 tmp.push_back(number);
             } else {
-                std::cout << "tried to set neighbour to self" << std::endl;
+                std::cout << "tried to set neighbor to self" << std::endl;
             }
         }
         m_neighbors.push_back(tmp);
     }
 
     if (config->debug("use_incremental_neighbor_update")) {
-        update_neighbours();
+        update_neighbors();
     }
 
     // run swarm simulation for 10_000 ticks with track_point position =
-    // swarm_start so that neighbours find to another
+    // swarm_start so that neighbors find to another
     update_swarm_center();
     // for (int i = 0; i < 5000; i++) {
     //     simulate_tick(config->swarm_start);
@@ -114,7 +114,7 @@ void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
     if (config->debug("use_incremental_neighbor_update")) {
         update_neighbors_incremental();
     } else {
-        update_neighbours();
+        update_neighbors();
     }
     if (config->debug("use_cpu")) {
         simulate_cpu(track_point, wind, gravitation);
@@ -123,7 +123,7 @@ void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
     }
 }
 
-void Swarm::update_neighbours() {
+void Swarm::update_neighbors() {
     config->update_neighbors.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -221,61 +221,61 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         auto pos = m_posistions[i];
 
         /////////////////////////////////////////////////////////////////////////////
-        // 1. try to keep distance x between all neighbours
+        // 1. try to keep distance x between all neighbors
         /////////////////////////////////////////////////////////////////////////////
-        auto neighbour0 = m_posistions[m_neighbors[i][0]] - pos;
-        auto neighbour1 = m_posistions[m_neighbors[i][1]] - pos;
-        auto neighbour2 = m_posistions[m_neighbors[i][2]] - pos;
-        auto neighbour3 = m_posistions[m_neighbors[i][3]] - pos;
+        auto neighbor0 = m_posistions[m_neighbors[i][0]] - pos;
+        auto neighbor1 = m_posistions[m_neighbors[i][1]] - pos;
+        auto neighbor2 = m_posistions[m_neighbors[i][2]] - pos;
+        auto neighbor3 = m_posistions[m_neighbors[i][3]] - pos;
 
-        auto dist_neighbour0 = glm::length(neighbour0);
-        auto dist_neighbour1 = glm::length(neighbour1);
-        auto dist_neighbour2 = glm::length(neighbour2);
-        auto dist_neighbour3 = glm::length(neighbour3);
+        auto dist_neighbor0 = glm::length(neighbor0);
+        auto dist_neighbor1 = glm::length(neighbor1);
+        auto dist_neighbor2 = glm::length(neighbor2);
+        auto dist_neighbor3 = glm::length(neighbor3);
 
         auto vec_neigbour0 = glm::vec3(0, 0, 0);
         auto vec_neigbour1 = glm::vec3(0, 0, 0);
         auto vec_neigbour2 = glm::vec3(0, 0, 0);
         auto vec_neigbour3 = glm::vec3(0, 0, 0);
 
-        auto neighbour_dist_factor = 5.0;
-        auto neighbour_dist_ideal = 100.0;
-        auto neighbour_dist_toleration = 25.0;
+        auto neighbor_dist_factor = 5.0;
+        auto neighbor_dist_ideal = 100.0;
+        auto neighbor_dist_toleration = 25.0;
 
-        if (dist_neighbour0 <
-                neighbour_dist_ideal - neighbour_dist_toleration ||
-            neighbour_dist_ideal + neighbour_dist_toleration <
-                dist_neighbour0) {
+        if (dist_neighbor0 <
+                neighbor_dist_ideal - neighbor_dist_toleration ||
+            neighbor_dist_ideal + neighbor_dist_toleration <
+                dist_neighbor0) {
             vec_neigbour0 =
-                neighbour0 * (float)((dist_neighbour0 - neighbour_dist_ideal) *
-                                     neighbour_dist_factor);
+                neighbor0 * (float)((dist_neighbor0 - neighbor_dist_ideal) *
+                                     neighbor_dist_factor);
         }
 
-        if (dist_neighbour1 <
-                neighbour_dist_ideal - neighbour_dist_toleration ||
-            neighbour_dist_ideal + neighbour_dist_toleration <
-                dist_neighbour1) {
+        if (dist_neighbor1 <
+                neighbor_dist_ideal - neighbor_dist_toleration ||
+            neighbor_dist_ideal + neighbor_dist_toleration <
+                dist_neighbor1) {
             vec_neigbour1 =
-                neighbour1 * (float)((dist_neighbour1 - neighbour_dist_ideal) *
-                                     neighbour_dist_factor);
+                neighbor1 * (float)((dist_neighbor1 - neighbor_dist_ideal) *
+                                     neighbor_dist_factor);
         }
 
-        if (dist_neighbour2 <
-                neighbour_dist_ideal - neighbour_dist_toleration ||
-            neighbour_dist_ideal + neighbour_dist_toleration <
-                dist_neighbour2) {
+        if (dist_neighbor2 <
+                neighbor_dist_ideal - neighbor_dist_toleration ||
+            neighbor_dist_ideal + neighbor_dist_toleration <
+                dist_neighbor2) {
             vec_neigbour2 =
-                neighbour2 * (float)((dist_neighbour2 - neighbour_dist_ideal) *
-                                     neighbour_dist_factor);
+                neighbor2 * (float)((dist_neighbor2 - neighbor_dist_ideal) *
+                                     neighbor_dist_factor);
         }
 
-        if (dist_neighbour3 <
-                neighbour_dist_ideal - neighbour_dist_toleration ||
-            neighbour_dist_ideal + neighbour_dist_toleration <
-                dist_neighbour3) {
+        if (dist_neighbor3 <
+                neighbor_dist_ideal - neighbor_dist_toleration ||
+            neighbor_dist_ideal + neighbor_dist_toleration <
+                dist_neighbor3) {
             vec_neigbour3 =
-                neighbour3 * (float)((dist_neighbour3 - neighbour_dist_ideal) *
-                                     neighbour_dist_factor);
+                neighbor3 * (float)((dist_neighbor3 - neighbor_dist_ideal) *
+                                     neighbor_dist_factor);
         }
 
         auto neihgour_factor =
@@ -283,7 +283,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
                                  vec_neigbour3) /
                          4.0f,
                      10.0f);
-        auto neighbour_correction = glm::normalize(
+        auto neighbor_correction = glm::normalize(
             vec_neigbour0 + vec_neigbour1 + vec_neigbour2 + vec_neigbour3);
 
         /////////////////////////////////////////////////////////////////////////////
@@ -309,17 +309,17 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         /////////////////////////////////////////////////////////////////////////////
         // 6. apply 2-6 relativ to setted ratios
         /////////////////////////////////////////////////////////////////////////////
-        neighbour_correction = glm::normalize(neighbour_correction);
+        neighbor_correction = glm::normalize(neighbor_correction);
         tp_direction = glm::normalize(tp_direction);
         swarm_center_direction = glm::normalize(swarm_center_direction);
 
-        neighbour_correction *= config->swarm_weight_neighbours;
+        neighbor_correction *= config->swarm_weight_neighbors;
         tp_direction *= config->swarm_weight_track_point;
         swarm_center_direction *= config->swarm_weight_swarm_center;
 
         auto target_direction = glm::normalize(
             // 25.0f * spread_direction * glm::length(m_swarm_center - pos) +
-            neighbour_correction + tp_direction + swarm_center_direction);
+            neighbor_correction + tp_direction + swarm_center_direction);
 
         // TODO: acceleration, realistic direction change, etc..
         auto final_direction =
@@ -334,12 +334,12 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
             std::cout << "pos: " << glm::to_string(pos) << std::endl
                       << "center: " << glm::to_string(m_swarm_center)
                       << std::endl
-                      << "neighbour_correction: "
-                      << glm::to_string(neighbour_correction) << std::endl
-                      << "  n0 :" << dist_neighbour0 << std::endl
-                      << "  n1 :" << dist_neighbour1 << std::endl
-                      << "  n2 :" << dist_neighbour2 << std::endl
-                      << "  n3 :" << dist_neighbour3 << std::endl
+                      << "neighbor_correction: "
+                      << glm::to_string(neighbor_correction) << std::endl
+                      << "  n0 :" << dist_neighbor0 << std::endl
+                      << "  n1 :" << dist_neighbor1 << std::endl
+                      << "  n2 :" << dist_neighbor2 << std::endl
+                      << "  n3 :" << dist_neighbor3 << std::endl
                       << "center_direction:     "
                       << glm::to_string(swarm_center_direction) << std::endl
                       << "tp_direction:         "

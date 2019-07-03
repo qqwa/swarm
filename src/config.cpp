@@ -73,11 +73,11 @@ Config::Config(std::string path)
         throw std::runtime_error("config error settings.tick");
     }
 
-    val_d = m_config->get_qualified_as<double>("swarm.weight_neighbours");
+    val_d = m_config->get_qualified_as<double>("swarm.weight_neighbors");
     if (val_d) {
-        swarm_weight_neighbours = *val_d;
+        swarm_weight_neighbors = *val_d;
     } else {
-        throw std::runtime_error("config error weight_neighbours");
+        throw std::runtime_error("config error weight_neighbors");
     }
 
     val_d = m_config->get_qualified_as<double>("swarm.weight_collision");
