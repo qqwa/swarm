@@ -79,6 +79,10 @@ void Swarm::reset() {
         m_neighbors.push_back(tmp);
     }
 
+    if (config->debug("use_incremental_neighbor_update")) {
+        update_neighbours();
+    }
+
     // run swarm simulation for 10_000 ticks with track_point position =
     // swarm_start so that neighbours find to another
     update_swarm_center();
@@ -106,7 +110,12 @@ void Swarm::update_swarm_center() {
 
 void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
                           Gravitation gravitation) {
-    update_neighbours();
+
+    if (config->debug("use_incremental_neighbor_update")) {
+        update_neighbors_incremental();
+    } else {
+        update_neighbours();
+    }
     if (config->debug("use_cpu")) {
         simulate_cpu(track_point, wind, gravitation);
     } else {
@@ -124,7 +133,7 @@ void Swarm::update_neighbours() {
         for (auto j = 0; neigbours.size() != 4; j++) {
             if (j != i) {
                 neigbours.push_back(j);
-                distances.push_back(glm::length(m_posistions[0] - pos));
+                distances.push_back(glm::length(m_posistions[j] - pos));
             }
         }
 
@@ -153,8 +162,42 @@ void Swarm::update_neighbours() {
     config->update_neighbors.Stop();
 }
 
+// swarm disappears after some time? o.O
 void Swarm::update_neighbors_incremental() {
     for (int i = 0; i < config->swarm_size; i++) {
+        auto pos = m_posistions[i];
+        std::vector<size_t> neigbours = {};
+        std::vector<float> distances = {};
+
+        for (auto n : m_neighbors[i]) {
+            neigbours.push_back(n);
+            distances.push_back(glm::length(m_posistions[n] - pos));
+        }
+
+        int largest = 0;
+        for (int j = 1; j < 4; j++) {
+            if (distances[largest] < distances[j]) {
+                largest = j;
+            }
+        }
+
+        // check neighbors of neighbors
+        for (auto n : neigbours) {
+            for (auto nn : m_neighbors[n]) {
+                auto dist = glm::length(m_posistions[nn] - pos);
+                if (nn != i && distances[largest] < dist) {
+                    distances[largest] = dist;
+                    neigbours[largest] = nn;
+                    int largest = 0;
+                    for (int j = 1; j < 4; j++) {
+                        if (distances[largest] < distances[j]) {
+                            largest = j;
+                        }
+                    }
+                }
+            }
+        }
+        m_neighbors[i] = neigbours;
     }
 }
 
