@@ -44,6 +44,11 @@ int main(int argc, char *argv[]) {
     }
 
     // TODO: init opencl
+    auto default_device = util::getFirstDevice();
+    auto context = cl::Context(default_device);
+    auto program =
+        util::getProgram("res/kernel/neighbor.ocl", context, default_device);
+    auto queue = cl::CommandQueue(context, default_device);
 
     // TODO: initialize data, swarm members, mesh, etc...
     World world = World(window);
@@ -69,6 +74,7 @@ int main(int argc, char *argv[]) {
               << "========================" << std::endl;
     std::cout << config->update << std::endl;
     std::cout << "\t" << config->update_neighbors << std::endl;
+    std::cout << "\t" << config->update_neighbors_incremental << std::endl;
     std::cout << "\t" << config->update_swarm << std::endl;
     std::cout << config->render << std::endl;
 

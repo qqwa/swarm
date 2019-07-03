@@ -31,6 +31,7 @@ class Config {
     Profiler render;
     Profiler update;
     Profiler update_neighbors;
+    Profiler update_neighbors_incremental;
     Profiler update_swarm;
 
   public:

@@ -23,6 +23,7 @@ class Swarm {
     GLuint center_shader;
 
     std::vector<glm::vec3> m_posistions;
+    std::vector<glm::vec3> m_position_updates;
     std::vector<glm::vec3> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..
     std::vector<std::vector<size_t>> m_neighbors;

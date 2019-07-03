@@ -4,7 +4,8 @@
 Config::Config(std::string path)
     : render(2500, "Render"), update(2500, "Update"),
       update_neighbors(2500, "Update Neighbor"),
-      update_swarm(2500, "Update Swarm") {
+      update_swarm(2500, "Update Swarm"),
+      update_neighbors_incremental(2500, "Update Swarm Inc") {
     m_config = cpptoml::parse_file(path);
     std::cout << "loading config " << path << " " << m_config << "..."
               << std::endl;
