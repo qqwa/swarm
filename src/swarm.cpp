@@ -115,6 +115,7 @@ void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
 }
 
 void Swarm::update_neighbours() {
+    config->update_neighbors.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
         std::vector<size_t> neigbours = {};
@@ -149,11 +150,18 @@ void Swarm::update_neighbours() {
         }
         m_neighbors[i] = neigbours;
     }
+    config->update_neighbors.Stop();
+}
+
+void Swarm::update_neighbors_incremental() {
+    for (int i = 0; i < config->swarm_size; i++) {
+    }
 }
 
 // programmed as it were a "kernel"
 void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
+    config->update_swarm.Start();
     glm::vec3 update_swarm_center = {0, 0, 0};
     // std::cout << "simulate cpu" << std::endl;
 
@@ -304,9 +312,14 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         update_swarm_center += pos_update / (float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
+
+    config->update_swarm.Stop();
 }
 
-void Swarm::simulate_gpu() {}
+void Swarm::simulate_gpu() {
+    config->update_swarm.Start();
+    config->update_swarm.Stop();
+}
 
 void Swarm::render(Camera &camera) {
     // draw birds

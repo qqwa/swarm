@@ -39,8 +39,8 @@ std::ostream &operator<<(std::ostream &stream, const Profiler &profiler) {
     }
     avgTime /= profiler.m_rawTime.size();
 
-    return stream << profiler.m_msg << ":" << std::setprecision(2) << std::fixed
-                  << "[Avg Time:"
+    return stream << profiler.m_msg << "(" << profiler.m_rawTime.size()
+                  << "):" << std::setprecision(2) << std::fixed << "[Avg Time:"
                   << std::chrono::duration_cast<
                          std::chrono::duration<float, std::milli>>(avgTime)
                          .count()

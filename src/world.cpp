@@ -17,8 +17,6 @@ World::World(GLFWwindow *window) {
         glm::radians(45.0f), (float)800 / (float)600, 0.1f, 10000.0f));
     m_camera.update(0);
 
-    m_swarm = Swarm();
-
     tick = 0;
     m_wind = Wind();
     m_gravitation = Gravitation(+9.81);
@@ -78,7 +76,7 @@ void World::update(float delta) {
 
 void World::render() {
     glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0);
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw swarm

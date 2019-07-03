@@ -1,6 +1,7 @@
 #include <iostream>
 #define GLEW_STATIC
 #include "config.h"
+#include "profiler.h"
 #include "world.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -31,6 +32,9 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     glfwMakeContextCurrent(window);
+    if (config->debug("vsync_off")) {
+        glfwSwapInterval(0);
+    }
 
     // TODO: init opengl
     glewExperimental = true;
@@ -49,13 +53,24 @@ int main(int argc, char *argv[]) {
         glfwPollEvents();
 
         // TODO: check if we need to calculate next frame
+        config->update.Start();
         world.update(0.0167);
+        config->update.Stop();
 
         // TODO: draw frame
+        config->render.Start();
         world.render();
+        config->render.Stop();
 
         glfwSwapBuffers(window);
     }
+
+    std::cout << "Profiler output:\n"
+              << "========================" << std::endl;
+    std::cout << config->update << std::endl;
+    std::cout << "\t" << config->update_neighbors << std::endl;
+    std::cout << "\t" << config->update_swarm << std::endl;
+    std::cout << config->render << std::endl;
 
     return 0;
 }

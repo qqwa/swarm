@@ -1,3 +1,4 @@
+#include "profiler.h"
 #include <cpptoml.h>
 #include <glm/glm.hpp>
 
@@ -26,6 +27,11 @@ class Config {
     float swarm_weight_swarm_center;
     float gravitation;
     std::vector<glm::vec3> spheres;
+
+    Profiler render;
+    Profiler update;
+    Profiler update_neighbors;
+    Profiler update_swarm;
 
   public:
     Config(std::string path);

@@ -5,6 +5,8 @@ control_camera = true
 use_cpu = true
 manuel_tick = false
 instance_rendering = true
+# should be set to true, when profiling render time
+vsync_off = false
 print_bird_vectors = false
 
 # print debug messages?

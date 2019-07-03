@@ -1,7 +1,10 @@
 #include "config.h"
 #include <iostream>
 
-Config::Config(std::string path) {
+Config::Config(std::string path)
+    : render(2500, "Render"), update(2500, "Update"),
+      update_neighbors(2500, "Update Neighbor"),
+      update_swarm(2500, "Update Swarm") {
     m_config = cpptoml::parse_file(path);
     std::cout << "loading config " << path << " " << m_config << "..."
               << std::endl;
