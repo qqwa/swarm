@@ -26,11 +26,6 @@ void kernel update_neighbor(
         largest = 3;
     }
 
-    if (id==0) {
-        neighbors[0] = 5;
-    }
-    return;
-
     for (int i=0; i < swarm_size; i = i+1) {
         float dist = fast_distance(pos, positions[i]);
         if (i != id && 
@@ -39,7 +34,7 @@ void kernel update_neighbor(
         i != neighbors[id*4+2] && 
         i != neighbors[id*4+3] &&
         dist < distances[largest]) {
-            distances[0] = dist;
+            distances[largest] = dist;
             neighbors[id*4+largest] = i;
             // update which neighbor has the largest distance
             int largest = 0;
