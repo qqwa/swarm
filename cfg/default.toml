@@ -8,7 +8,8 @@ instance_rendering = true
 # should be set to true, when profiling render time
 vsync_off = true
 print_bird_vectors = false
-use_incremental_neighbor_update = false
+use_incremental_neighbor_update = true
+skip_full_neighbor_update = true
 
 # print debug messages?
 camera_position = false
@@ -24,17 +25,17 @@ tick = 0.0166667
 sphere_size = 25.0
 
 [swarm]
-size = 1_000
+size = 10_000
 start = [200.0, 150.0, 0.0]
 speed = 25.0
 
 initial_spread = 40
 
 
-weight_neighbors = 4.0
+weight_neighbors = 3.0
 weight_collision = 1.0
-weight_track_point = 0.5
-weight_swarm_center = 1.0
+weight_track_point = 0.75
+weight_swarm_center = 0.5
 
 [environment]
 # strength

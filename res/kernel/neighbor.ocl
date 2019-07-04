@@ -64,7 +64,7 @@ void kernel update_neighbor_incremental(
         int cur_n = neighbors[id*4+n];
         for(int nn=0; nn<4; nn++) {
             int cur_nn = neighbors[cur_n*4+nn];
-            neighbor_neighbors[nn*5] = cur_nn;
+            neighbor_neighbors[n*4*5+nn*5] = cur_nn;
             for(int nnn=0; nnn<4; nnn++) {
                 int cur_nnn = neighbors[cur_nn*4+nnn];
                 neighbor_neighbors[n*4*5+nn*5+nnn+1] = cur_nnn;
