@@ -72,7 +72,6 @@ void kernel update_neighbor_incremental(
         }
     }
     
-    return;
     // save all neighbors of our neighbors before continuing
     barrier(0);
 
@@ -81,7 +80,6 @@ void kernel update_neighbor_incremental(
     distances[1] = fast_distance(pos, positions[neighbors[id*4+1]]);
     distances[2] = fast_distance(pos, positions[neighbors[id*4+2]]);
     distances[3] = fast_distance(pos, positions[neighbors[id*4+3]]);
-
     // update which neighbor has the largest distance
     __private int largest = 0;
     if (distances[largest] < distances[1]) {
@@ -94,7 +92,6 @@ void kernel update_neighbor_incremental(
         largest = 3;
     }
 
-    return;
     for (int i = 0; i < 80; i++) {
         int nn = neighbor_neighbors[i];
         float dist = fast_distance(pos, positions[nn]);
@@ -104,7 +101,6 @@ void kernel update_neighbor_incremental(
         nn != neighbors[id*4+2] && 
         nn != neighbors[id*4+3] &&
         dist < distances[largest]) {
-            return;
             distances[largest] = dist;
             neighbors[id*4+largest] = nn;
             // update which neighbor has the largest distance
