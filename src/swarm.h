@@ -9,6 +9,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <random>
 #include <vector>
+#include <CL/cl.hpp>
 
 class Swarm {
   private:
@@ -18,6 +19,11 @@ class Swarm {
     GLuint instance_pos_vbo;
     GLuint instance_dir_vbo;
 
+    cl::Program m_kernel_neighbor;
+    cl::Buffer m_buf_positions;
+    cl::Buffer m_buf_directions;
+    cl::Buffer m_buf_neighbors;
+
     glm::vec3 center_color;
     util::MeshMetaData center_mesh;
     GLuint center_shader;
@@ -26,7 +32,7 @@ class Swarm {
     std::vector<glm::vec3> m_position_updates;
     std::vector<glm::vec3> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..
-    std::vector<std::vector<size_t>> m_neighbors;
+    std::vector<int> m_neighbors;
     glm::vec3 m_swarm_center;
 
     std::mt19937_64 m_random;
@@ -39,6 +45,7 @@ class Swarm {
 
   public:
     Swarm();
+    void create_kernels_and_buffers(cl::Device &device, cl::Context &context);
     void reset();
     size_t size();
     void simulate_tick(glm::vec3 track_point, Wind wind,

@@ -67,13 +67,13 @@ void Swarm::reset() {
     // all birds get 4 assigned neighbors
     auto gen_neighbor = std::uniform_int_distribution<size_t>(0, count - 1);
     for (int i = 0; i < count; i++) {
-        std::vector<size_t> tmp;
-        for (int j = 0; j < count && tmp.size() != 4; j++) {
+        int tmp = 0;
+        for (int j = 0; j < count && tmp != 4; j++) {
             if (i != j) {
-                tmp.push_back(j);
+                m_neighbors.push_back(j);
+                tmp++;
             }
         }
-        m_neighbors.push_back(tmp);
     }
 
     if (config->debug("use_incremental_neighbor_update")) {
@@ -121,9 +121,9 @@ void Swarm::update_neighbors() {
         std::vector<size_t> neigbours = {};
         std::vector<float> distances = {};
 
-        for (auto n : m_neighbors[i]) {
-            neigbours.push_back(n);
-            distances.push_back(glm::length(m_posistions[n] - pos));
+        for (auto n = 0; n < 4; n++) {
+            neigbours.push_back(m_neighbors[i*4+n]);
+            distances.push_back(glm::length(m_posistions[m_neighbors[i*4+n]] - pos));
         }
 
         int largest = 0;
@@ -148,7 +148,9 @@ void Swarm::update_neighbors() {
                 }
             }
         }
-        m_neighbors[i] = neigbours;
+        for (auto n = 0; n < 4; n++) {
+            m_neighbors[i*4+n] = neigbours[n];
+        }
     }
     config->update_neighbors.Stop();
 }
@@ -161,9 +163,9 @@ void Swarm::update_neighbors_incremental() {
         std::vector<size_t> neigbours = {};
         std::vector<float> distances = {};
 
-        for (auto n : m_neighbors[i]) {
-            neigbours.push_back(n);
-            distances.push_back(glm::length(m_posistions[n] - pos));
+        for (auto n = 0; n < 4; n++) {
+            neigbours.push_back(m_neighbors[i*4+n]);
+            distances.push_back(glm::length(m_posistions[m_neighbors[i*4+n]] - pos));
         }
 
         int largest = 0;
@@ -174,14 +176,15 @@ void Swarm::update_neighbors_incremental() {
         }
 
         // check neighbors of neighbors
-        for (auto n : neigbours) {
-            for (auto nn : m_neighbors[n]) {
-                auto dist = glm::length(m_posistions[nn] - pos);
-                if (nn != i && nn != neigbours[0] && nn != neigbours[1] &&
-                    nn != neigbours[2] && nn != neigbours[3] &&
+        for (auto n = 0; n < 4; n++) {
+            for (auto nn = 0; nn < 4; nn++) {
+                auto nn_index = n*4+nn;
+                auto dist = glm::length(m_posistions[nn_index] - pos);
+                if (nn_index != i && nn_index != neigbours[0] && nn_index != neigbours[1] &&
+                    nn_index != neigbours[2] && nn_index != neigbours[3] &&
                     dist < distances[largest]) {
                     distances[largest] = dist;
-                    neigbours[largest] = nn;
+                    neigbours[largest] = nn_index;
                     int largest = 0;
                     for (int j = 1; j < 4; j++) {
                         if (distances[largest] < distances[j]) {
@@ -191,7 +194,9 @@ void Swarm::update_neighbors_incremental() {
                 }
             }
         }
-        m_neighbors[i] = neigbours;
+        for (auto n = 0; n < 4; n++) {
+            m_neighbors[i*4+n] = neigbours[n];
+        }
     }
     config->update_neighbors_incremental.Stop();
 }
@@ -218,10 +223,10 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         /////////////////////////////////////////////////////////////////////////////
         // 1. try to keep distance x between all neighbors
         /////////////////////////////////////////////////////////////////////////////
-        auto neighbor0 = m_posistions[m_neighbors[i][0]] - pos;
-        auto neighbor1 = m_posistions[m_neighbors[i][1]] - pos;
-        auto neighbor2 = m_posistions[m_neighbors[i][2]] - pos;
-        auto neighbor3 = m_posistions[m_neighbors[i][3]] - pos;
+        auto neighbor0 = m_posistions[m_neighbors[i*4+0]] - pos;
+        auto neighbor1 = m_posistions[m_neighbors[i*4+1]] - pos;
+        auto neighbor2 = m_posistions[m_neighbors[i*4+2]] - pos;
+        auto neighbor3 = m_posistions[m_neighbors[i*4+3]] - pos;
 
         auto dist_neighbor0 = glm::length(neighbor0);
         auto dist_neighbor1 = glm::length(neighbor1);
@@ -430,4 +435,12 @@ void Swarm::render(Camera &camera) {
     glBindVertexArray(center_mesh.vao);
     glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT, 0);
     glEnable(GL_DEPTH_TEST);
+}
+
+
+void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context) {
+    m_kernel_neighbor = util::getProgram("res/kernel/neighbor.ocl", context, device);
+    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*m_posistions.size(), m_posistions.data());
+    m_buf_directions;
+    m_buf_neighbors = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(int)*4*m_neighbors.size(), m_neighbors.data());;
 }
