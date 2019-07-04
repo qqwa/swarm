@@ -24,10 +24,10 @@ World::World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::C
     m_wind = Wind();
     m_gravitation = Gravitation(+9.81);
 
+    m_swarm.reset(*m_queue);
     if(!config->debug("use_cpu")) {
         m_swarm.create_kernels_and_buffers(*m_device, *m_context);
     }
-    m_swarm.reset(*m_queue);
 
     pressed_t = glfwGetKey(m_window, GLFW_KEY_T) == GLFW_RELEASE;
 }
