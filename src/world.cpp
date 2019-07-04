@@ -78,10 +78,10 @@ void World::update(float delta) {
         }
     }
     if(config->debug("use_cpu")) {
-        m_swarm.simulate_tick_cpu(m_track_point.get_pos(), m_wind,
+        m_swarm.simulate_tick_cpu(tick, m_track_point.get_pos(), m_wind,
                             m_gravitation);
     } else {
-        m_swarm.simulate_tick_gpu(m_track_point.get_pos(), m_wind,
+        m_swarm.simulate_tick_gpu(tick, m_track_point.get_pos(), m_wind,
                             m_gravitation, *m_queue);
     }
     tick++;

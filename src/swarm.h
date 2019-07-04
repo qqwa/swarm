@@ -51,9 +51,9 @@ class Swarm {
     void create_kernels_and_buffers(cl::Device &device, cl::Context &context);
     void reset(cl::CommandQueue &queue);
     size_t size();
-    void simulate_tick_cpu(glm::vec3 track_point, Wind wind,
+    void simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
                        Gravitation gravitation);
-    void simulate_tick_gpu(glm::vec3 track_point, Wind wind,
+    void simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                        Gravitation gravitation, cl::CommandQueue &queue);
     void render(Camera &camera);
 };

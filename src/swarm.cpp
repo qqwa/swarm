@@ -39,6 +39,12 @@ Swarm::Swarm() {
     center_color = {1.0, 0.7, 1.0};
     center_mesh = util::loadMesh("res/sphere.obj");
     center_shader = util::getShader("res/shader/default");
+
+    m_posistions.reserve(config->swarm_size);
+    m_position_updates.reserve(config->swarm_size);
+    m_orientations.reserve(config->swarm_size);
+    m_scales.reserve(config->swarm_size);
+    m_neighbors.reserve(config->swarm_size*4);
 }
 
 void Swarm::reset(cl::CommandQueue &queue) {
@@ -56,9 +62,9 @@ void Swarm::reset(cl::CommandQueue &queue) {
     for (int i = 0; i < count; i++) {
         auto pos = glm::vec3{gen_coord(m_random), gen_coord(m_random),
                              gen_coord(m_random)};
-        m_posistions.push_back(config->swarm_start + pos);
-        m_position_updates.push_back(glm::vec3(0, 0, 0));
-        m_orientations.push_back(glm::vec3{1, 1, 1});
+        m_posistions[i] = config->swarm_start + pos;
+        m_position_updates[i] = glm::vec3(0, 0, 0);
+        m_orientations[i] = glm::vec3{1, 1, 1};
         m_scales.push_back({1, 1, 1});
     }
 
@@ -68,17 +74,9 @@ void Swarm::reset(cl::CommandQueue &queue) {
         int tmp = 0;
         for (int j = 0; j < count && tmp != 4; j++) {
             if (i != j) {
-                m_neighbors.push_back(j);
+                m_neighbors[i*4+tmp] = j;
                 tmp++;
             }
-        }
-    }
-
-    if (config->debug("use_incremental_neighbor_update")) {
-        if(config->debug("use_cpu")) {
-            update_neighbors_cpu();
-        } else {
-            update_neighbors_gpu(queue);
         }
     }
 
@@ -101,9 +99,9 @@ void Swarm::update_swarm_center() {
     m_swarm_center = {x, y, z};
 }
 
-void Swarm::simulate_tick_cpu(glm::vec3 track_point, Wind wind,
+void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
                           Gravitation gravitation) {
-    if (config->debug("use_incremental_neighbor_update")) {
+    if (config->debug("use_incremental_neighbor_update") && tick == 0) {
         update_neighbors_incremental_cpu();
     } else {
         update_neighbors_cpu();
@@ -111,9 +109,9 @@ void Swarm::simulate_tick_cpu(glm::vec3 track_point, Wind wind,
     simulate_cpu(track_point, wind, gravitation);
 }
 
-void Swarm::simulate_tick_gpu(glm::vec3 track_point, Wind wind,
+void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                           Gravitation gravitation, cl::CommandQueue &queue) {
-    if (config->debug("use_incremental_neighbor_update")) {
+    if (config->debug("use_incremental_neighbor_update") && tick == 0) {
         update_neighbors_incremental_gpu();
     } else {
         update_neighbors_gpu(queue);
@@ -177,7 +175,7 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
     queue.finish();
 
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*m_neighbors.size(), m_neighbors.data());
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
     // queue.finish();
     std::cout << ret << ":" << m_neighbors[0] << "\n" << std::endl;
 
