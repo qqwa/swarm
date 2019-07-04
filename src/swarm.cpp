@@ -127,6 +127,9 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
 }
 
 void Swarm::update_neighbors_cpu() {
+    if (config->debug("use_incremental_neighbor_update") && config->debug("skip_full_neighbor_update")) {
+        return;
+    }
     if (config->debug("trace_swarm")) {
     std::cout << "Swarm::update_neighbors_cpu" << std::endl;
     }

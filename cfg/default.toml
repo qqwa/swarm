@@ -1,7 +1,7 @@
 
 
 [debug]
-control_camera = true
+control_camera = false
 use_cpu = false
 manuel_tick = false
 instance_rendering = true
@@ -14,7 +14,7 @@ skip_full_neighbor_update = true
 # print debug messages?
 camera_position = false
 swarm_reset = true
-smallest_dist = true
+smallest_dist = false
 trace_swarm = false
 
 [settings]
@@ -25,7 +25,7 @@ tick = 0.0166667
 sphere_size = 25.0
 
 [swarm]
-size = 10_000
+size = 1_000
 start = [200.0, 150.0, 0.0]
 speed = 25.0
 
@@ -48,7 +48,7 @@ spheres = [
 
 # values to interpolate between
 [interpolation]
-steps = 10000
+steps = 5000
 
 ideal_distance = [
     [25, 100],
@@ -81,24 +81,22 @@ track_point = [
 
 # position + pitch + yaw
 camera = [
-    [-200, -400, 0, 1, 1],
-    [-200, 30, 30, 1, 1],
-    [-200, 30, 30, 1, 1],
-    [-200, 30, 30, 1, 1],
-    [-200, 30, 30, 1, 1],
-    [-200, 30, 60, 1, 1],
-    [-200, 30, 90, 1, 1],
-    [-200, 30, 120, 1, 1],
-    [-150, 30, 150, 1, -45],
+    [-150, -350, 0, 50, 10],
+    [-200, -400, 0, 70, 22],
+    [-200, -400, 0, 70, 22],
+    [-200, -400, 0, 89, 22],
+    [200, 400, 0, 89, 22],
+    [200, 400, 0, 89, 22],
+    [-200, -400, 0, 70, 22],
 ]
 
 # position + strength
 wind = [
     [0, 1 ,0, 5],
     [1, 3 ,0, 2],
-    [2, 2 ,0, 5],
-    [2, 2 ,0, 5],
-    [2, 2 ,0, 5],
+    [-2, 2 ,0, 65],
+    [2, 2 ,0, 30],
+    [2, -2 ,0, 15],
     [2, 2 ,0, 5],
     [2, 2 ,0, 5],
     [-2, 2 ,0, 5],
