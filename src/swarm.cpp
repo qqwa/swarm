@@ -164,7 +164,6 @@ void Swarm::update_neighbors_cpu() {
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     // load data to buffer
-    return;
     config->update_neighbors_gpu.Start();
 
     // run kernel
@@ -174,11 +173,11 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(2, config->swarm_size);
     // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
-    queue.finish();
+    // queue.finish();
 
     // load data from buffer
     auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
-    // queue.finish();
+    queue.finish();
 
     // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>() << std::endl;
     // void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors, CL_TRUE, CL_MAP_READ, 0, 10);
@@ -247,9 +246,10 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(0, m_buf_positions);
     kernel_neighbor.setArg(1, m_buf_neighbors);
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
-    queue.finish();
+    // queue.finish();
 
     auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
+    queue.finish();
 
     config->update_neighbors_incremental_gpu.Stop();
 }
@@ -525,5 +525,6 @@ void Swarm::smallest_dist() {
             dist_max = std::max(dist_max, dist);
         }
     }
-    std::cout << "Distance min:" << dist_min << " max:" << dist_max << " collisions: " << collisions << std::endl;
+    std::cout << "Distance min:" << dist_min << " max:" << dist_max << " collisions: " << collisions/2 << std::endl;
+    std::cout << m_neighbors[0] << std::endl;
 }

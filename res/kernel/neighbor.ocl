@@ -6,13 +6,12 @@ void kernel update_neighbor(
     int swarm_size
 ) {
     __private int id = get_global_id(0);
-    __private float3 pos = positions[id];
 
     __private float distances[4];
-    distances[0] = fast_distance(pos, positions[neighbors[id*4+0]]);
-    distances[1] = fast_distance(pos, positions[neighbors[id*4+1]]);
-    distances[2] = fast_distance(pos, positions[neighbors[id*4+2]]);
-    distances[3] = fast_distance(pos, positions[neighbors[id*4+3]]);
+    distances[0] = fast_distance(positions[id], positions[neighbors[id*4+0]]);
+    distances[1] = fast_distance(positions[id], positions[neighbors[id*4+1]]);
+    distances[2] = fast_distance(positions[id], positions[neighbors[id*4+2]]);
+    distances[3] = fast_distance(positions[id], positions[neighbors[id*4+3]]);
 
     // update which neighbor has the largest distance
     __private int largest = 0;
@@ -26,8 +25,8 @@ void kernel update_neighbor(
         largest = 3;
     }
 
-    for (int i=0; i < swarm_size; i = i+1) {
-        float dist = fast_distance(pos, positions[i]);
+    for (int i=0; i < swarm_size; i++) {
+        __private float dist = fast_distance(positions[id], positions[i]);
         if (i != id &&
         i != neighbors[id*4+0] &&
         i != neighbors[id*4+1] &&
