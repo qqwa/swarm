@@ -58,13 +58,21 @@ void kernel update_neighbor_incremental(
     __private float3 pos = positions[id];
 
 
-    __private float neighbor_neighbors[16];
-    for (int i = 0; i < 16; i++) {
-        int n = i/4;
-        int nn = i%4;
-        neighbor_neighbors[i] = neighbors[neighbors[id*4+n]*4+nn];
+    __private float neighbor_neighbors[80];
+
+    for (int n=0; n < 4; n++) {
+        int cur_n = neighbors[id*4+n];
+        for(int nn=0; nn<4; nn++) {
+            int cur_nn = neighbors[cur_n*4+nn];
+            neighbor_neighbors[nn*5] = cur_nn;
+            for(int nnn=0; nnn<4; nnn++) {
+                int cur_nnn = neighbors[cur_nn*4+nnn];
+                neighbor_neighbors[n*4*5+nn*5+nnn+1] = cur_nnn;
+            }
+        }
     }
     
+    return;
     // save all neighbors of our neighbors before continuing
     barrier(0);
 
@@ -86,15 +94,17 @@ void kernel update_neighbor_incremental(
         largest = 3;
     }
 
-    for (int i = 0; i < 16; i++) {
+    return;
+    for (int i = 0; i < 80; i++) {
         int nn = neighbor_neighbors[i];
         float dist = fast_distance(pos, positions[nn]);
-        if (neighbor_neighbors[i] != id && 
-        neighbor_neighbors[i] != neighbors[id*4+0] && 
-        neighbor_neighbors[i] != neighbors[id*4+1] && 
-        neighbor_neighbors[i] != neighbors[id*4+2] && 
-        neighbor_neighbors[i] != neighbors[id*4+3] &&
+        if (nn != id && 
+        nn != neighbors[id*4+0] && 
+        nn != neighbors[id*4+1] && 
+        nn != neighbors[id*4+2] && 
+        nn != neighbors[id*4+3] &&
         dist < distances[largest]) {
+            return;
             distances[largest] = dist;
             neighbors[id*4+largest] = nn;
             // update which neighbor has the largest distance
