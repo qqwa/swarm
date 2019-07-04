@@ -28,10 +28,10 @@ void kernel update_neighbor(
 
     for (int i=0; i < swarm_size; i = i+1) {
         float dist = fast_distance(pos, positions[i]);
-        if (i != id && 
-        i != neighbors[id*4+0] && 
-        i != neighbors[id*4+1] && 
-        i != neighbors[id*4+2] && 
+        if (i != id &&
+        i != neighbors[id*4+0] &&
+        i != neighbors[id*4+1] &&
+        i != neighbors[id*4+2] &&
         i != neighbors[id*4+3] &&
         dist < distances[largest]) {
             distances[largest] = dist;
@@ -51,8 +51,65 @@ void kernel update_neighbor(
     }
 }
 
-void test() {
-    
-}
+void kernel update_neighbor_incremental(
+    global const float3* positions,
+    global int* neighbors
+) {
+    __private int id = get_global_id(0);
+    __private float3 pos = positions[id];
 
-// TODO: update_neighbor_incremental???
+
+    __private float neighbor_neighbors[16];
+    for (int i = 0; i < 16; i++) {
+        int n = i/4;
+        int nn = i%4;
+        neighbor_neighbors[i] = neighbors[neighbors[id*4+n]*4+nn];
+    }
+    
+    // save all neighbors of our neighbors before continuing
+    barrier(0);
+
+    __private float distances[4];
+    distances[0] = fast_distance(pos, positions[neighbors[id*4+0]]);
+    distances[1] = fast_distance(pos, positions[neighbors[id*4+1]]);
+    distances[2] = fast_distance(pos, positions[neighbors[id*4+2]]);
+    distances[3] = fast_distance(pos, positions[neighbors[id*4+3]]);
+
+    // update which neighbor has the largest distance
+    __private int largest = 0;
+    if (distances[largest] < distances[1]) {
+        largest = 1;
+    }
+    if (distances[largest] < distances[2]) {
+        largest = 2;
+    }
+    if (distances[largest] < distances[3]) {
+        largest = 3;
+    }
+
+    for (int i = 0; i < 16; i++) {
+        int nn = neighbor_neighbors[i];
+        float dist = fast_distance(pos, positions[nn]);
+        if (neighbor_neighbors[i] != id && 
+        neighbor_neighbors[i] != neighbors[id*4+0] && 
+        neighbor_neighbors[i] != neighbors[id*4+1] && 
+        neighbor_neighbors[i] != neighbors[id*4+2] && 
+        neighbor_neighbors[i] != neighbors[id*4+3] &&
+        dist < distances[largest]) {
+            distances[largest] = dist;
+            neighbors[id*4+largest] = nn;
+            // update which neighbor has the largest distance
+            int largest = 0;
+            if (distances[largest] < distances[1]) {
+                largest = 1;
+            }
+            if (distances[largest] < distances[2]) {
+                largest = 2;
+            }
+            if (distances[largest] < distances[3]) {
+                largest = 3;
+            }
+        }
+    }
+
+}

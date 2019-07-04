@@ -112,7 +112,7 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
 void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                           Gravitation gravitation, cl::CommandQueue &queue) {
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
-        update_neighbors_incremental_gpu();
+        update_neighbors_incremental_gpu(queue);
     } else {
         update_neighbors_gpu(queue);
     }
@@ -164,6 +164,7 @@ void Swarm::update_neighbors_cpu() {
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     // load data to buffer
+    return;
     config->update_neighbors_gpu.Start();
 
     // run kernel
@@ -238,9 +239,19 @@ void Swarm::update_neighbors_incremental_cpu() {
     config->update_neighbors_incremental_cpu.Stop();
 }
 
-void Swarm::update_neighbors_incremental_gpu() {
-    // TODO: use gpu
-    update_neighbors_incremental_cpu();
+void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
+    config->update_neighbors_incremental_gpu.Start();
+
+    // run kernel
+    auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
+    kernel_neighbor.setArg(0, m_buf_positions);
+    kernel_neighbor.setArg(1, m_buf_neighbors);
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
+    queue.finish();
+
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
+
+    config->update_neighbors_incremental_gpu.Stop();
 }
 
 // programmed as it were a "kernel"
@@ -445,7 +456,7 @@ void Swarm::render(Camera &camera) {
                                 GL_UNSIGNED_INT, 0, config->swarm_size);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     } else {
-        for (int i = 0; i < size(); i++) {
+        for (int i = 0; i < config->swarm_size; i++) {
             auto model = glm::lookAt(m_posistions[i],
                                      m_posistions[i] - m_orientations[i],
                                      {0.0f, 1.0f, 0.0f});
