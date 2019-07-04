@@ -27,6 +27,7 @@ World::World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::C
     if(!config->debug("use_cpu")) {
         m_swarm.create_kernels_and_buffers(*m_device, *m_context);
     }
+    m_swarm.reset(*m_queue);
 
     pressed_t = glfwGetKey(m_window, GLFW_KEY_T) == GLFW_RELEASE;
 }
@@ -68,15 +69,20 @@ void World::update(float delta) {
 
     if (config->debug("manuel_tick")) {
         if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_PRESS && !pressed_t) {
-            m_swarm.simulate_tick(m_track_point.get_pos(), m_wind,
-                                  m_gravitation);
+            // runs tick
             pressed_t = true;
         }
         if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_RELEASE && pressed_t) {
             pressed_t = false;
+            return;
         }
+    }
+    if(config->debug("use_cpu")) {
+        m_swarm.simulate_tick_cpu(m_track_point.get_pos(), m_wind,
+                            m_gravitation);
     } else {
-        m_swarm.simulate_tick(m_track_point.get_pos(), m_wind, m_gravitation);
+        m_swarm.simulate_tick_gpu(m_track_point.get_pos(), m_wind,
+                            m_gravitation, *m_queue);
     }
     tick++;
 }

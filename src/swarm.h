@@ -37,18 +37,23 @@ class Swarm {
 
     std::mt19937_64 m_random;
     void update_swarm_center();
-    void update_neighbors();
-    void update_neighbors_incremental();
+    void update_neighbors_cpu();
+    void update_neighbors_gpu(cl::CommandQueue &queue);
+    void update_neighbors_incremental_cpu();
+    void update_neighbors_incremental_gpu();
     void simulate_cpu(glm::vec3 track_point, Wind wind,
                       Gravitation gravitation);
-    void simulate_gpu();
+    void simulate_gpu(glm::vec3 track_point, Wind wind,
+                      Gravitation gravitation);
 
   public:
     Swarm();
     void create_kernels_and_buffers(cl::Device &device, cl::Context &context);
-    void reset();
+    void reset(cl::CommandQueue &queue);
     size_t size();
-    void simulate_tick(glm::vec3 track_point, Wind wind,
+    void simulate_tick_cpu(glm::vec3 track_point, Wind wind,
                        Gravitation gravitation);
+    void simulate_tick_gpu(glm::vec3 track_point, Wind wind,
+                       Gravitation gravitation, cl::CommandQueue &queue);
     void render(Camera &camera);
 };

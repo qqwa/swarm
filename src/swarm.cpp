@@ -7,8 +7,6 @@
 #include <random>
 
 Swarm::Swarm() {
-    reset();
-
     bird_color = {0.0, 0.0, 0.0};
     bird_mesh = util::loadMesh("res/bird.obj");
     if (config->debug("instance_rendering")) {
@@ -43,7 +41,7 @@ Swarm::Swarm() {
     center_shader = util::getShader("res/shader/default");
 }
 
-void Swarm::reset() {
+void Swarm::reset(cl::CommandQueue &queue) {
     // arange swarm equally in a cube with edge length size^(1/3), rounded
     // upwards
 
@@ -77,7 +75,11 @@ void Swarm::reset() {
     }
 
     if (config->debug("use_incremental_neighbor_update")) {
-        update_neighbors();
+        if(config->debug("use_cpu")) {
+            update_neighbors_cpu();
+        } else {
+            update_neighbors_gpu(queue);
+        }
     }
 
     update_swarm_center();
@@ -99,22 +101,28 @@ void Swarm::update_swarm_center() {
     m_swarm_center = {x, y, z};
 }
 
-void Swarm::simulate_tick(glm::vec3 track_point, Wind wind,
+void Swarm::simulate_tick_cpu(glm::vec3 track_point, Wind wind,
                           Gravitation gravitation) {
-
     if (config->debug("use_incremental_neighbor_update")) {
-        update_neighbors_incremental();
+        update_neighbors_incremental_cpu();
     } else {
-        update_neighbors();
+        update_neighbors_cpu();
     }
-    if (config->debug("use_cpu")) {
-        simulate_cpu(track_point, wind, gravitation);
-    } else {
-        simulate_gpu();
-    }
+    simulate_cpu(track_point, wind, gravitation);
 }
 
-void Swarm::update_neighbors() {
+void Swarm::simulate_tick_gpu(glm::vec3 track_point, Wind wind,
+                          Gravitation gravitation, cl::CommandQueue &queue) {
+    if (config->debug("use_incremental_neighbor_update")) {
+        update_neighbors_incremental_gpu();
+    } else {
+        update_neighbors_gpu(queue);
+    }
+    simulate_gpu(track_point, wind, gravitation);
+
+}
+
+void Swarm::update_neighbors_cpu() {
     config->update_neighbors.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -155,8 +163,30 @@ void Swarm::update_neighbors() {
     config->update_neighbors.Stop();
 }
 
+
+void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
+    // load data to buffer
+
+    std::cout << "pre kernel" << std::endl;
+    // run kernel
+    auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
+    kernel_neighbor.setArg(0, m_buf_positions);
+    kernel_neighbor.setArg(1, m_buf_neighbors);
+    kernel_neighbor.setArg(2, 5);
+    // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
+    std::cout << "post kernel" << std::endl;
+    auto res = queue.flush();
+    std::cout << "post flush " << res << std::endl;
+    queue.finish();
+    std::cout << "post finish " << std::endl;
+
+
+    // load data from buffer
+};
+
 // swarm disappears after some time? o.O
-void Swarm::update_neighbors_incremental() {
+void Swarm::update_neighbors_incremental_cpu() {
     config->update_neighbors_incremental.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -199,6 +229,11 @@ void Swarm::update_neighbors_incremental() {
         }
     }
     config->update_neighbors_incremental.Stop();
+}
+
+void Swarm::update_neighbors_incremental_gpu() {
+    // TODO: use gpu
+    update_neighbors_cpu();
 }
 
 // programmed as it were a "kernel"
@@ -367,9 +402,11 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
     config->update_swarm.Stop();
 }
 
-void Swarm::simulate_gpu() {
-    config->update_swarm.Start();
-    config->update_swarm.Stop();
+void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
+                         Gravitation gravitation) {
+    // TODO: use gpu
+    simulate_cpu(track_point, wind, gravitation);
+
 }
 
 void Swarm::render(Camera &camera) {
@@ -440,7 +477,7 @@ void Swarm::render(Camera &camera) {
 
 void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context) {
     m_kernel_neighbor = util::getProgram("res/kernel/neighbor.ocl", context, device);
-    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*m_posistions.size(), m_posistions.data());
+    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY, sizeof(float)*3*m_posistions.size(), m_posistions.data());
     m_buf_directions;
-    m_buf_neighbors = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(int)*4*m_neighbors.size(), m_neighbors.data());;
+    m_buf_neighbors = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY, sizeof(int)*4*m_neighbors.size(), m_neighbors.data());
 }
