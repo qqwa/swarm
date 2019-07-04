@@ -14,6 +14,7 @@ use_incremental_neighbor_update = true
 camera_position = false
 swarm_reset = true
 smallest_dist = true
+trace_swarm = false
 
 [settings]
 width = 1200

@@ -101,6 +101,9 @@ void Swarm::update_swarm_center() {
 
 void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
                           Gravitation gravitation) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::simulate_tick_cpu" << std::endl;
+    }
     if (config->debug("use_incremental_neighbor_update") && tick == 0) {
         update_neighbors_incremental_cpu();
     } else {
@@ -111,6 +114,9 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
 
 void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                           Gravitation gravitation, cl::CommandQueue &queue) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::simulate_tick_gpu" << std::endl;
+    }
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
         update_neighbors_incremental_gpu(queue);
     } else {
@@ -121,6 +127,9 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
 }
 
 void Swarm::update_neighbors_cpu() {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::update_neighbors_cpu" << std::endl;
+    }
     config->update_neighbors_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -163,6 +172,9 @@ void Swarm::update_neighbors_cpu() {
 
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::update_neighbors_gpu" << std::endl;
+    }
     // load data to buffer
     config->update_neighbors_gpu.Start();
 
@@ -194,6 +206,9 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
 
 // swarm disappears after some time? o.O
 void Swarm::update_neighbors_incremental_cpu() {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::update_neighbors_incremental_cpu" << std::endl;
+    }
     config->update_neighbors_incremental_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -239,6 +254,9 @@ void Swarm::update_neighbors_incremental_cpu() {
 }
 
 void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
+    }
     config->update_neighbors_incremental_gpu.Start();
 
     // run kernel
@@ -257,6 +275,9 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
 // programmed as it were a "kernel"
 void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::simulate_cpu" << std::endl;
+    }
     config->update_swarm_cpu.Start();
     glm::vec3 update_swarm_center = {0, 0, 0};
     // std::cout << "simulate cpu" << std::endl;
@@ -422,12 +443,18 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
 void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::simulate_gpu" << std::endl;
+    }
     // TODO: use gpu
     simulate_cpu(track_point, wind, gravitation);
 
 }
 
 void Swarm::render(Camera &camera) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::render" << std::endl;
+    }
     // draw birds
     glUseProgram(bird_shader);
 
@@ -494,6 +521,9 @@ void Swarm::render(Camera &camera) {
 
 
 void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context) {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::create_kernels_and_buffers" << std::endl;
+    }
     int ret;
     m_kernel_neighbor = util::getProgram("res/kernel/neighbor.ocl", context, device);
     m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*config->swarm_size, m_posistions.data(), &ret);
@@ -509,6 +539,9 @@ void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context)
 
 
 void Swarm::smallest_dist() {
+    if (config->debug("trace_swarm")) {
+    std::cout << "Swarm::smallest_dist" << std::endl;
+    }
     auto dist_min = glm::length(m_posistions[0] - m_posistions[1]); 
     auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
     auto collisions = 0;
