@@ -476,8 +476,15 @@ void Swarm::render(Camera &camera) {
 
 
 void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context) {
+    int ret;
     m_kernel_neighbor = util::getProgram("res/kernel/neighbor.ocl", context, device);
-    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*m_posistions.size(), m_posistions.data());
+    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*config->swarm_size, m_posistions.data(), &ret);
+    if (ret != CL_SUCCESS) {
+        std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
+    }
     m_buf_directions;
-    m_buf_neighbors = cl::Buffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY, sizeof(int)*4*m_neighbors.size(), m_neighbors.data());
+    m_buf_neighbors = cl::Buffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY, sizeof(int)*4*config->swarm_size, m_neighbors.data(), &ret);
+    if (ret != CL_SUCCESS) {
+        std::cout << "CL_ERROR: (m_buf_neighbors)" << sizeof(int)*4*m_neighbors.size() << "  " << ret << std::endl;
+    }
 }
