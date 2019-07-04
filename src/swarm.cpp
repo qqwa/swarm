@@ -292,8 +292,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         auto vec_neigbour3 = glm::vec3(0, 0, 0);
 
         auto neighbor_dist_factor = 5.0;
-        auto neighbor_dist_ideal = 50.0;
-        auto neighbor_dist_toleration = 10.0;
+        auto neighbor_dist_ideal = 250.0;
+        auto neighbor_dist_toleration = 100.0;
 
         if (dist_neighbor0 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor0) {
@@ -505,4 +505,25 @@ void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context)
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_neighbors)" << sizeof(int)*4*m_neighbors.size() << "  " << ret << std::endl;
     }
+}
+
+
+void Swarm::smallest_dist() {
+    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]); 
+    auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
+    auto collisions = 0;
+    for (int i = 0; i < config->swarm_size; i++) {
+        for(int j = 0; j < config->swarm_size; j++) {
+            if (i==j) {
+                continue;
+            }
+            auto dist = glm::length(m_posistions[i] - m_posistions[j]);
+            if (dist < 5.0) {
+                collisions++;
+            }
+            dist_min = std::min(dist_min, dist);
+            dist_max = std::max(dist_max, dist);
+        }
+    }
+    std::cout << "Distance min:" << dist_min << " max:" << dist_max << " collisions: " << collisions << std::endl;
 }

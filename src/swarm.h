@@ -56,4 +56,5 @@ class Swarm {
     void simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                        Gravitation gravitation, cl::CommandQueue &queue);
     void render(Camera &camera);
+    void smallest_dist();
 };

@@ -84,6 +84,9 @@ void World::update(float delta) {
         m_swarm.simulate_tick_gpu(tick, m_track_point.get_pos(), m_wind,
                             m_gravitation, *m_queue);
     }
+    if (config->debug("smallest_dist")) {
+        m_swarm.smallest_dist();
+    }
     tick++;
 }
 
