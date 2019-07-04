@@ -46,12 +46,10 @@ int main(int argc, char *argv[]) {
     // TODO: init opencl
     auto default_device = util::getFirstDevice();
     auto context = cl::Context(default_device);
-    auto program =
-        util::getProgram("res/kernel/neighbor.ocl", context, default_device);
     auto queue = cl::CommandQueue(context, default_device);
 
     // TODO: initialize data, swarm members, mesh, etc...
-    World world = World(window);
+    World world = World(window, &default_device, &context, &queue);
 
     while (!glfwWindowShouldClose(window) &&
            !glfwGetKey(window, GLFW_KEY_ESCAPE)) {

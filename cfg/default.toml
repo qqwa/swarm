@@ -6,9 +6,9 @@ use_cpu = true
 manuel_tick = false
 instance_rendering = true
 # should be set to true, when profiling render time
-vsync_off = false
+vsync_off = true
 print_bird_vectors = false
-use_incremental_neighbor_update = false
+use_incremental_neighbor_update = true
 
 # print debug messages?
 camera_position = false
@@ -19,9 +19,10 @@ width = 1200
 height = 800
 random_seed = 110
 tick = 0.0166667
+sphere_size = 25.0
 
 [swarm]
-size = 500
+size = 1000
 start = [200.0, 150.0, 0.0]
 speed = 25.0
 
@@ -30,8 +31,8 @@ initial_spread = 40
 
 weight_neighbors = 2.0
 weight_collision = 1.0
-weight_track_point = 3.0
-weight_swarm_center = 2.0
+weight_track_point = 0.5
+weight_swarm_center = 1.0
 
 [environment]
 # strength
@@ -44,14 +45,35 @@ spheres = [
 
 # values to interpolate between
 [interpolation]
-steps = 100
+steps = 10000
+
+ideal_distance = [
+    [25, 100],
+    [25, 100],
+    [25, 100],
+    [25, 100],
+    [250, 500],
+    [500, 750],
+]
 
 track_point = [
+    [0, 5000, 500],
+    [0, 1000, 0],
+    [0, 5000, 500],
+    [0, 5000, 500],
+    [0, 5000, 500],
+    [0, 1000, 0],
+    [0, 5000, 500],
     [0, 0, 0],
-    [0, 100, 0],
-    [0, 50, 50],
-    [0, 100, 0],
-    [0, 50, 50],
+    [0, 1000, 0],
+    [0, 5000, 500],
+    [0, 1000, 0],
+    [0, 5000, 500],
+    [0, 0, 0],
+    [0, 1000, 0],
+    [0, 5000, 500],
+    [0, 1000, 0],
+    [0, 5000, 500],
 ]
 
 # position + pitch + yaw
@@ -73,6 +95,10 @@ wind = [
     [1, 3 ,0, 2],
     [2, 2 ,0, 5],
     [2, 2 ,0, 5],
+    [2, 2 ,0, 5],
+    [2, 2 ,0, 5],
+    [2, 2 ,0, 5],
+    [-2, 2 ,0, 5],
     [2, 2 ,0, 5],
     [2, 2 ,0, 5],
     [2, 2 ,0, 5],

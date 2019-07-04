@@ -234,8 +234,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         auto vec_neigbour3 = glm::vec3(0, 0, 0);
 
         auto neighbor_dist_factor = 5.0;
-        auto neighbor_dist_ideal = 100.0;
-        auto neighbor_dist_toleration = 25.0;
+        auto neighbor_dist_ideal = 50.0;
+        auto neighbor_dist_toleration = 10.0;
 
         if (dist_neighbor0 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor0) {
@@ -282,7 +282,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         // 3. fly in direction of track point
         /////////////////////////////////////////////////////////////////////////////
         // dont normalize because the length matters?
-        auto tp_direction = glm::normalize(track_point - m_swarm_center);
+        auto tp_direction = glm::normalize(track_point - pos);
 
         /////////////////////////////////////////////////////////////////////////////
         // 4. check if collideable object is near, if yes fly away from it
@@ -411,6 +411,7 @@ void Swarm::render(Camera &camera) {
     }
     // draw center point
 
+    glDisable(GL_DEPTH_TEST);
     glUseProgram(center_shader);
     viewLocation = glGetUniformLocation(center_shader, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
@@ -422,10 +423,11 @@ void Swarm::render(Camera &camera) {
     glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
 
     auto center =
-        Transform(m_swarm_center, glm::vec3{0, 0, 0}, glm::vec3{5, 5, 5});
+        Transform(m_swarm_center, glm::vec3{0, 0, 0}, glm::vec3{config->sphere_size,config->sphere_size,config->sphere_size});
     int modelLocation = glGetUniformLocation(center_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
                        glm::value_ptr(center.GetMatrix()));
     glBindVertexArray(center_mesh.vao);
     glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT, 0);
+    glEnable(GL_DEPTH_TEST);
 }

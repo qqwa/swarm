@@ -3,6 +3,7 @@
 #include "util.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <CL/cl.hpp>
 
 #include "camera.h"
 #include "gravitation.h"
@@ -16,6 +17,10 @@ class World {
 
     glm::mat4 view;
     glm::mat4 projection;
+
+    cl::Device *m_device;
+    cl::Context *m_context;
+    cl::CommandQueue *m_queue;
 
     GLFWwindow *m_window;
     Swarm m_swarm;
@@ -32,7 +37,7 @@ class World {
     bool pressed_t;
 
   public:
-    World(GLFWwindow *window);
+    World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::CommandQueue *queue);
     void update(float delta);
     void render();
 };

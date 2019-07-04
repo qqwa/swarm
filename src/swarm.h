@@ -39,7 +39,6 @@ class Swarm {
 
   public:
     Swarm();
-    Swarm(size_t member_count);
     void reset();
     size_t size();
     void simulate_tick(glm::vec3 track_point, Wind wind,

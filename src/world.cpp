@@ -6,15 +6,18 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
-World::World(GLFWwindow *window) {
+World::World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::CommandQueue *queue) {
     m_window = window;
+    m_device = device;
+    m_context = context;
+    m_queue = queue;
     clear_color = {0.2, 0.3, 0.3};
 
     m_move_speed = 50.0;
     m_rotation_speed = 80;
 
     m_camera.setProjection(glm::perspective(
-        glm::radians(45.0f), (float)800 / (float)600, 0.1f, 10000.0f));
+        glm::radians(45.0f), (float)config->width / (float)config->height, 0.1f, 10000.0f));
     m_camera.update(0);
 
     tick = 0;
@@ -76,12 +79,14 @@ void World::update(float delta) {
 
 void World::render() {
     glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0);
-    // glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw swarm
     m_swarm.render(m_camera);
     m_wind.render(m_camera);
     m_gravitation.render(m_camera);
+    glDisable(GL_DEPTH_TEST);
     m_track_point.render(m_camera);
+    glEnable(GL_DEPTH_TEST);
 }

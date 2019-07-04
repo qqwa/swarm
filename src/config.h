@@ -20,6 +20,7 @@ class Config {
     int swarm_size;
     glm::vec3 swarm_start;
     float swarm_initial_spread;
+    float sphere_size;
     float swarm_speed;
     float swarm_weight_neighbors;
     float swarm_weight_collision;

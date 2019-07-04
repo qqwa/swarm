@@ -5,6 +5,7 @@ TrackPoint::TrackPoint() : m_transform({0.0, 0.0, 0.0}) {
     track_point_color = {0.0, 0.7, 0.3};
     track_point_mesh = util::loadMesh("res/sphere.obj");
     track_point_shader = util::getShader("res/shader/default");
+    m_transform.SetScale(glm::vec3{config->sphere_size,config->sphere_size,config->sphere_size});
 }
 
 void TrackPoint::update(int tick) {
