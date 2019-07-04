@@ -178,6 +178,8 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     // load data to buffer
     config->update_neighbors_gpu.Start();
 
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0, sizeof(float)*3*config->swarm_size, m_posistions.data());
+
     // run kernel
     auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
     kernel_neighbor.setArg(0, m_buf_positions);
@@ -258,6 +260,8 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
     }
     config->update_neighbors_incremental_gpu.Start();
+
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0, sizeof(float)*3*config->swarm_size, m_posistions.data());
 
     // run kernel
     auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
