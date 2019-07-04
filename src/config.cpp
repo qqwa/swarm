@@ -2,10 +2,14 @@
 #include <iostream>
 
 Config::Config(std::string path)
-    : render(2500, "Render"), update(2500, "Update"),
-      update_neighbors(2500, "Update Neighbor"),
-      update_swarm(2500, "Update Swarm"),
-      update_neighbors_incremental(2500, "Update Swarm Inc") {
+    : render(2500, "Render"),
+      update(2500, "Update"),
+      update_neighbors_cpu(2500, "Update Neighbor CPU"),
+      update_swarm_cpu(2500, "Update Swarm CPU"),
+      update_neighbors_incremental_cpu(2500, "Update Swarm Inc CPU"),
+      update_neighbors_gpu(2500, "Update Neighbor GPU"),
+      update_swarm_gpu(2500, "Update Swarm GPU"),
+      update_neighbors_incremental_gpu(2500, "Update Swarm Inc GPU") {
     m_config = cpptoml::parse_file(path);
     std::cout << "loading config " << path << " " << m_config << "..."
               << std::endl;

@@ -31,9 +31,12 @@ class Config {
 
     Profiler render;
     Profiler update;
-    Profiler update_neighbors;
-    Profiler update_neighbors_incremental;
-    Profiler update_swarm;
+    Profiler update_neighbors_cpu;
+    Profiler update_neighbors_incremental_cpu;
+    Profiler update_swarm_cpu;
+    Profiler update_neighbors_gpu;
+    Profiler update_neighbors_incremental_gpu;
+    Profiler update_swarm_gpu;
 
   public:
     Config(std::string path);

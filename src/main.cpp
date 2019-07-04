@@ -71,9 +71,12 @@ int main(int argc, char *argv[]) {
     std::cout << "Profiler output:\n"
               << "========================" << std::endl;
     std::cout << config->update << std::endl;
-    std::cout << "\t" << config->update_neighbors << std::endl;
-    std::cout << "\t" << config->update_neighbors_incremental << std::endl;
-    std::cout << "\t" << config->update_swarm << std::endl;
+    std::cout << "\t" << config->update_neighbors_cpu << std::endl;
+    std::cout << "\t" << config->update_neighbors_incremental_cpu << std::endl;
+    std::cout << "\t" << config->update_swarm_cpu << std::endl;
+    std::cout << "\t" << config->update_neighbors_gpu << std::endl;
+    std::cout << "\t" << config->update_neighbors_incremental_gpu << std::endl;
+    std::cout << "\t" << config->update_swarm_gpu << std::endl;
     std::cout << config->render << std::endl;
 
     return 0;

@@ -19,7 +19,7 @@ void Profiler::Stop() {
 
 std::ostream &operator<<(std::ostream &stream, const Profiler &profiler) {
     if (profiler.m_rawTime.size() == 0) {
-        return stream << "No Data collected";
+        return stream  << profiler.m_msg << " No Data collected";
     }
     std::chrono::duration<float> avgTime(0);
     std::chrono::duration<float> minTime = profiler.m_rawTime[0];
