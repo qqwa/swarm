@@ -34,7 +34,7 @@ initial_spread = 40
 
 
 weight_neighbors = 3.0
-weight_collision = 1.0
+weight_enemy = 1.0
 weight_track_point = 0.75
 weight_swarm_center = 0.5
 

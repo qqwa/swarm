@@ -91,11 +91,11 @@ Config::Config(std::string path)
         throw std::runtime_error("config error weight_neighbors");
     }
 
-    val_d = m_config->get_qualified_as<double>("swarm.weight_collision");
+    val_d = m_config->get_qualified_as<double>("swarm.weight_enemy");
     if (val_d) {
-        swarm_weight_collision = *val_d;
+        swarm_weight_enemy = *val_d;
     } else {
-        throw std::runtime_error("config error swarm.weight_collision");
+        throw std::runtime_error("config error swarm.weight_enemy");
     }
 
     val_d = m_config->get_qualified_as<double>("swarm.weight_track_point");

@@ -24,7 +24,7 @@ class Config {
     float debug_sphere_size;
     float swarm_speed;
     float swarm_weight_neighbors;
-    float swarm_weight_collision;
+    float swarm_weight_enemy;
     float swarm_weight_track_point;
     float swarm_weight_swarm_center;
     float gravitation;
