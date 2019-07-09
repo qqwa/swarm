@@ -87,7 +87,7 @@ class Swarm {
 
     /**
      * @brief Creates OpenCL Kernels and Buffers, this function needs to be
-     * called only once
+     * called only once and needs to be called after the `reset` method.
      * @param device OpenCL Device
      * @param context OpenCL Context
      */
