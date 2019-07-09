@@ -194,7 +194,7 @@ void Swarm::smallest_dist() {
 /////////////////////////////////////////////////////////////////////////////
 
 void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
-                              Gravitation gravitation) {
+                              Gravitation gravitation, Enemy enemy) {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_tick_cpu" << std::endl;
     }
@@ -203,7 +203,7 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
     } else {
         update_neighbors_cpu();
     }
-    simulate_cpu(track_point, wind, gravitation);
+    simulate_cpu_v2(track_point, wind, gravitation, enemy);
 }
 
 void Swarm::update_neighbors_cpu() {
@@ -302,6 +302,17 @@ void Swarm::update_neighbors_incremental_cpu() {
         }
     }
     config->update_neighbors_incremental_cpu.Stop();
+}
+
+void Swarm::simulate_cpu_v2(glm::vec3 track_point, Wind wind,
+                            Gravitation gravitation, Enemy enemy) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::simulate_cpu" << std::endl;
+    }
+    config->update_swarm_cpu.Start();
+    // TODO: clean implementation
+
+    config->update_swarm_cpu.Stop();
 }
 
 // programmed as it were a "kernel"
@@ -508,7 +519,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 /////////////////////////////////////////////////////////////////////////////
 
 void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
-                              Gravitation gravitation,
+                              Gravitation gravitation, Enemy enemy,
                               cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_tick_gpu" << std::endl;
@@ -518,7 +529,7 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
     } else {
         update_neighbors_gpu(queue);
     }
-    simulate_gpu(track_point, wind, gravitation);
+    simulate_gpu(track_point, wind, gravitation, enemy, queue);
 }
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
@@ -594,7 +605,8 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
 }
 
 void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
-                         Gravitation gravitation) {
+                         Gravitation gravitation, Enemy enemy,
+                         cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_gpu" << std::endl;
     }

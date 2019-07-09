@@ -27,7 +27,7 @@ World::World(GLFWwindow *window, cl::Device *device, cl::Context *context,
     m_enemy = Enemy();
     m_gravitation = Gravitation(+9.81);
 
-    m_swarm.reset(*m_queue);
+    m_swarm.reset();
     if (!config->debug("use_cpu")) {
         m_swarm.create_kernels_and_buffers(*m_device, *m_context);
     }
@@ -83,10 +83,10 @@ void World::update(float delta) {
     }
     if (config->debug("use_cpu")) {
         m_swarm.simulate_tick_cpu(tick, m_track_point.get_pos(), m_wind,
-                                  m_gravitation);
+                                  m_gravitation, m_enemy);
     } else {
         m_swarm.simulate_tick_gpu(tick, m_track_point.get_pos(), m_wind,
-                                  m_gravitation, *m_queue);
+                                  m_gravitation, m_enemy, *m_queue);
     }
     if (config->debug("smallest_dist") && tick % 600 == 0) {
         m_swarm.smallest_dist();

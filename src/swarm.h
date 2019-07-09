@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera.h"
+#include "enemy.h"
 #include "gravitation.h"
 #include "transform.h"
 #include "util.h"
@@ -39,11 +40,13 @@ class Swarm {
 
     void simulate_cpu(glm::vec3 track_point, Wind wind,
                       Gravitation gravitation);
+    void simulate_cpu_v2(glm::vec3 track_point, Wind wind,
+                         Gravitation gravitation, Enemy enemy);
     void update_neighbors_cpu();
     void update_neighbors_incremental_cpu();
 
-    void simulate_gpu(glm::vec3 track_point, Wind wind,
-                      Gravitation gravitation);
+    void simulate_gpu(glm::vec3 track_point, Wind wind, Gravitation gravitation,
+                      Enemy enemy, cl::CommandQueue &queue);
     void update_neighbors_gpu(cl::CommandQueue &queue);
     void update_neighbors_incremental_gpu(cl::CommandQueue &queue);
 
@@ -65,7 +68,7 @@ class Swarm {
      */
 
     void simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
-                           Gravitation gravitation);
+                           Gravitation gravitation, Enemy enemy);
 
     /**
      * @brief Run one tick on GPU, before this method is called
@@ -76,9 +79,11 @@ class Swarm {
      * @param wind Wind that gets applied to all swarm members
      * @param gravitation Gravitation that gets applied to all swarm members
      * @param enemy Enemy which the swarm members want to avoid
+     * @param queue OpenCL Command Queue to execute kernels
      */
     void simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
-                           Gravitation gravitation, cl::CommandQueue &queue);
+                           Gravitation gravitation, Enemy enemy,
+                           cl::CommandQueue &queue);
 
     /**
      * @brief Creates OpenCL Kernels and Buffers, this function needs to be
