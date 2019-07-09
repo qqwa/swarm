@@ -63,11 +63,11 @@ Config::Config(std::string path)
         throw std::runtime_error("config error swarm.speed");
     }
 
-    val_d = m_config->get_qualified_as<double>("settings.sphere_size");
+    val_d = m_config->get_qualified_as<double>("settings.debug_sphere_size");
     if (val_d) {
-        sphere_size = *val_d;
+        debug_sphere_size = *val_d;
     } else {
-        throw std::runtime_error("config error settings.sphere_size");
+        throw std::runtime_error("config error settings.debug_sphere_size");
     }
 
     val_d = m_config->get_qualified_as<double>("swarm.initial_spread");

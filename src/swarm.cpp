@@ -41,7 +41,6 @@ Swarm::Swarm() {
     center_shader = util::getShader("res/shader/default");
 
     m_posistions.reserve(config->swarm_size);
-    m_position_updates.reserve(config->swarm_size);
     m_orientations.reserve(config->swarm_size);
     m_scales.reserve(config->swarm_size);
     m_neighbors.reserve(config->swarm_size * 4);
@@ -63,7 +62,6 @@ void Swarm::reset(cl::CommandQueue &queue) {
         auto pos = glm::vec3{gen_coord(m_random), gen_coord(m_random),
                              gen_coord(m_random)};
         m_posistions[i] = config->swarm_start + pos;
-        m_position_updates[i] = glm::vec3(0, 0, 0);
         m_orientations[i] = glm::vec3{1, 1, 1};
         m_scales.push_back({1, 1, 1});
     }
@@ -80,12 +78,10 @@ void Swarm::reset(cl::CommandQueue &queue) {
         }
     }
 
-    update_swarm_center();
+    calculate_swarm_center();
 }
 
-size_t Swarm::size() { return m_posistions.size(); }
-
-void Swarm::update_swarm_center() {
+void Swarm::calculate_swarm_center() {
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
@@ -99,6 +95,104 @@ void Swarm::update_swarm_center() {
     m_swarm_center = {x, y, z};
 }
 
+void Swarm::render(Camera &camera) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::render" << std::endl;
+    }
+    // draw birds
+    glUseProgram(bird_shader);
+
+    int viewLocation = glGetUniformLocation(bird_shader, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetTransform()));
+    int projectionLocation = glGetUniformLocation(bird_shader, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetProjection()));
+    int colorLocation = glGetUniformLocation(bird_shader, "color");
+    glUniform3fv(colorLocation, 1, glm::value_ptr(bird_color));
+
+    if (config->debug("instance_rendering")) {
+        // update instance buffers
+        glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_posistions.data(), GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
+                     m_orientations.data(), GL_DYNAMIC_DRAW);
+
+        // draw swarm
+        glBindVertexArray(bird_mesh.vao);
+        glDrawElementsInstanced(GL_TRIANGLES, bird_mesh.indicesCount,
+                                GL_UNSIGNED_INT, 0, config->swarm_size);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    } else {
+        for (int i = 0; i < config->swarm_size; i++) {
+            auto model = glm::lookAt(m_posistions[i],
+                                     m_posistions[i] - m_orientations[i],
+                                     {0.0f, 1.0f, 0.0f});
+            model = glm::inverse(model);
+            int modelLocation = glGetUniformLocation(bird_shader, "model");
+            glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
+                               glm::value_ptr(model));
+            glBindVertexArray(bird_mesh.vao);
+            glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount,
+                           GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    // draw center point
+    glDisable(GL_DEPTH_TEST);
+    glUseProgram(center_shader);
+    viewLocation = glGetUniformLocation(center_shader, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetTransform()));
+    projectionLocation = glGetUniformLocation(center_shader, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
+                       glm::value_ptr(camera.GetProjection()));
+    colorLocation = glGetUniformLocation(center_shader, "color");
+    glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
+
+    auto center = Transform(m_swarm_center, glm::vec3{0, 0, 0},
+                            glm::vec3{config->debug_sphere_size,
+                                      config->debug_sphere_size,
+                                      config->debug_sphere_size});
+    int modelLocation = glGetUniformLocation(center_shader, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
+                       glm::value_ptr(center.GetMatrix()));
+    glBindVertexArray(center_mesh.vao);
+    glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT, 0);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Swarm::smallest_dist() {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::smallest_dist" << std::endl;
+    }
+    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]);
+    auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
+    auto collisions = 0;
+    for (int i = 0; i < config->swarm_size; i++) {
+        for (int j = 0; j < config->swarm_size; j++) {
+            if (i == j) {
+                continue;
+            }
+            auto dist = glm::length(m_posistions[i] - m_posistions[j]);
+            if (dist < 5.0) {
+                collisions++;
+            }
+            dist_min = std::min(dist_min, dist);
+            dist_max = std::max(dist_max, dist);
+        }
+    }
+    std::cout << "Distance min:" << dist_min << " max:" << dist_max
+              << " collisions: " << collisions / 2 << std::endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CPU Implementation
+/////////////////////////////////////////////////////////////////////////////
+
 void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
                               Gravitation gravitation) {
     if (config->debug("trace_swarm")) {
@@ -110,20 +204,6 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
         update_neighbors_cpu();
     }
     simulate_cpu(track_point, wind, gravitation);
-}
-
-void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
-                              Gravitation gravitation,
-                              cl::CommandQueue &queue) {
-    if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::simulate_tick_gpu" << std::endl;
-    }
-    if (config->debug("use_incremental_neighbor_update") && tick != 0) {
-        update_neighbors_incremental_gpu(queue);
-    } else {
-        update_neighbors_gpu(queue);
-    }
-    simulate_gpu(track_point, wind, gravitation);
 }
 
 void Swarm::update_neighbors_cpu() {
@@ -175,52 +255,6 @@ void Swarm::update_neighbors_cpu() {
     config->update_neighbors_cpu.Stop();
 }
 
-void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
-    if (config->debug("use_incremental_neighbor_update") &&
-        config->debug("skip_full_neighbor_update")) {
-        return;
-    }
-    if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::update_neighbors_gpu" << std::endl;
-    }
-    // load data to buffer
-    config->update_neighbors_gpu.Start();
-
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
-
-    // run kernel
-    auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
-    kernel_neighbor.setArg(0, m_buf_positions);
-    kernel_neighbor.setArg(1, m_buf_neighbors);
-    kernel_neighbor.setArg(2, config->swarm_size);
-    // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
-    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
-                               cl::NDRange(config->swarm_size), cl::NullRange);
-    // queue.finish();
-
-    // load data from buffer
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
-                                       sizeof(int) * 4 * config->swarm_size,
-                                       m_neighbors.data());
-    queue.finish();
-
-    // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>()
-    // << std::endl; void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors,
-    // CL_TRUE, CL_MAP_READ, 0, 10); std::cout << "Mapped value of Buffer C at
-    // index 1: " << ((cl_int *)mapped_read)[1] << std::endl;
-    // queue.enqueueUnmapMemObject(m_buf_neighbors, mapped_read);
-    // for (int i = 0; i < 4; i++) {
-    //     std::cout << "\t" << m_neighbors[i] << "\n";
-    // }
-    // std::cout << std::endl;
-    // exit(1);
-
-    config->update_neighbors_gpu.Stop();
-};
-
-// swarm disappears after some time? o.O
 void Swarm::update_neighbors_incremental_cpu() {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::update_neighbors_incremental_cpu" << std::endl;
@@ -270,33 +304,6 @@ void Swarm::update_neighbors_incremental_cpu() {
     config->update_neighbors_incremental_cpu.Stop();
 }
 
-void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
-    if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
-    }
-    config->update_neighbors_incremental_gpu.Start();
-
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
-
-    // run kernel
-    auto kernel_neighbor =
-        cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
-    kernel_neighbor.setArg(0, m_buf_positions);
-    kernel_neighbor.setArg(1, m_buf_neighbors);
-    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
-                               cl::NDRange(config->swarm_size), cl::NullRange);
-    // queue.finish();
-
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
-                                       sizeof(int) * 4 * config->swarm_size,
-                                       m_neighbors.data());
-    queue.finish();
-
-    config->update_neighbors_incremental_gpu.Stop();
-}
-
 // programmed as it were a "kernel"
 void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
@@ -304,7 +311,9 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         std::cout << "Swarm::simulate_cpu" << std::endl;
     }
     config->update_swarm_cpu.Start();
-    glm::vec3 update_swarm_center = {0, 0, 0};
+    glm::vec3 calculate_swarm_center = {0, 0, 0};
+    std::vector<glm::vec3> position_updates;
+    position_updates.reserve(config->swarm_size);
     // std::cout << "simulate cpu" << std::endl;
 
     // apply external forces
@@ -453,7 +462,7 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * config->tick;
 
-        m_position_updates[i] = pos_update;
+        position_updates[i] = pos_update;
         m_orientations[i] = {final_direction};
 
         if (i == 0 && config->debug("print_bird_vectors")) {
@@ -485,13 +494,103 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
     // 7. update swarm center, with change vector of all members
     /////////////////////////////////////////////////////////////////////////////
     for (int i = 0; i < config->swarm_size; i++) {
-        m_posistions[i] += m_position_updates[i];
-        update_swarm_center +=
-            m_position_updates[i] / (float)config->swarm_size;
+        m_posistions[i] += position_updates[i];
+        calculate_swarm_center +=
+            position_updates[i] / (float)config->swarm_size;
     }
-    m_swarm_center += update_swarm_center;
+    m_swarm_center += calculate_swarm_center;
 
     config->update_swarm_cpu.Stop();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// GPU Implementation
+/////////////////////////////////////////////////////////////////////////////
+
+void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
+                              Gravitation gravitation,
+                              cl::CommandQueue &queue) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::simulate_tick_gpu" << std::endl;
+    }
+    if (config->debug("use_incremental_neighbor_update") && tick != 0) {
+        update_neighbors_incremental_gpu(queue);
+    } else {
+        update_neighbors_gpu(queue);
+    }
+    simulate_gpu(track_point, wind, gravitation);
+}
+
+void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
+    if (config->debug("use_incremental_neighbor_update") &&
+        config->debug("skip_full_neighbor_update")) {
+        return;
+    }
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::update_neighbors_gpu" << std::endl;
+    }
+    // load data to buffer
+    config->update_neighbors_gpu.Start();
+
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
+
+    // run kernel
+    auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
+    kernel_neighbor.setArg(0, m_buf_positions);
+    kernel_neighbor.setArg(1, m_buf_neighbors);
+    kernel_neighbor.setArg(2, config->swarm_size);
+    // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
+    // queue.finish();
+
+    // load data from buffer
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
+                                       sizeof(int) * 4 * config->swarm_size,
+                                       m_neighbors.data());
+    queue.finish();
+
+    // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>()
+    // << std::endl; void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors,
+    // CL_TRUE, CL_MAP_READ, 0, 10); std::cout << "Mapped value of Buffer C at
+    // index 1: " << ((cl_int *)mapped_read)[1] << std::endl;
+    // queue.enqueueUnmapMemObject(m_buf_neighbors, mapped_read);
+    // for (int i = 0; i < 4; i++) {
+    //     std::cout << "\t" << m_neighbors[i] << "\n";
+    // }
+    // std::cout << std::endl;
+    // exit(1);
+
+    config->update_neighbors_gpu.Stop();
+};
+
+void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
+    }
+    config->update_neighbors_incremental_gpu.Start();
+
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
+
+    // run kernel
+    auto kernel_neighbor =
+        cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
+    kernel_neighbor.setArg(0, m_buf_positions);
+    kernel_neighbor.setArg(1, m_buf_neighbors);
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
+    // queue.finish();
+
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
+                                       sizeof(int) * 4 * config->swarm_size,
+                                       m_neighbors.data());
+    queue.finish();
+
+    config->update_neighbors_incremental_gpu.Stop();
 }
 
 void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
@@ -501,75 +600,6 @@ void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
     }
     // TODO: use gpu
     simulate_cpu(track_point, wind, gravitation);
-}
-
-void Swarm::render(Camera &camera) {
-    if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::render" << std::endl;
-    }
-    // draw birds
-    glUseProgram(bird_shader);
-
-    int viewLocation = glGetUniformLocation(bird_shader, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
-                       glm::value_ptr(camera.GetTransform()));
-    int projectionLocation = glGetUniformLocation(bird_shader, "projection");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
-                       glm::value_ptr(camera.GetProjection()));
-    int colorLocation = glGetUniformLocation(bird_shader, "color");
-    glUniform3fv(colorLocation, 1, glm::value_ptr(bird_color));
-
-    if (config->debug("instance_rendering")) {
-        // update instance buffers
-        glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
-                     m_posistions.data(), GL_DYNAMIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
-                     m_orientations.data(), GL_DYNAMIC_DRAW);
-
-        // draw swarm
-        glBindVertexArray(bird_mesh.vao);
-        glDrawElementsInstanced(GL_TRIANGLES, bird_mesh.indicesCount,
-                                GL_UNSIGNED_INT, 0, config->swarm_size);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    } else {
-        for (int i = 0; i < config->swarm_size; i++) {
-            auto model = glm::lookAt(m_posistions[i],
-                                     m_posistions[i] - m_orientations[i],
-                                     {0.0f, 1.0f, 0.0f});
-            model = glm::inverse(model);
-            int modelLocation = glGetUniformLocation(bird_shader, "model");
-            glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
-                               glm::value_ptr(model));
-            glBindVertexArray(bird_mesh.vao);
-            glDrawElements(GL_TRIANGLES, bird_mesh.indicesCount,
-                           GL_UNSIGNED_INT, 0);
-        }
-    }
-    // draw center point
-
-    glDisable(GL_DEPTH_TEST);
-    glUseProgram(center_shader);
-    viewLocation = glGetUniformLocation(center_shader, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE,
-                       glm::value_ptr(camera.GetTransform()));
-    projectionLocation = glGetUniformLocation(center_shader, "projection");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE,
-                       glm::value_ptr(camera.GetProjection()));
-    colorLocation = glGetUniformLocation(center_shader, "color");
-    glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
-
-    auto center = Transform(m_swarm_center, glm::vec3{0, 0, 0},
-                            glm::vec3{config->sphere_size, config->sphere_size,
-                                      config->sphere_size});
-    int modelLocation = glGetUniformLocation(center_shader, "model");
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
-                       glm::value_ptr(center.GetMatrix()));
-    glBindVertexArray(center_mesh.vao);
-    glDrawElements(GL_TRIANGLES, center_mesh.indicesCount, GL_UNSIGNED_INT, 0);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void Swarm::create_kernels_and_buffers(cl::Device &device,
@@ -595,28 +625,4 @@ void Swarm::create_kernels_and_buffers(cl::Device &device,
                   << sizeof(int) * 4 * m_neighbors.size() << "  " << ret
                   << std::endl;
     }
-}
-
-void Swarm::smallest_dist() {
-    if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::smallest_dist" << std::endl;
-    }
-    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]);
-    auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
-    auto collisions = 0;
-    for (int i = 0; i < config->swarm_size; i++) {
-        for (int j = 0; j < config->swarm_size; j++) {
-            if (i == j) {
-                continue;
-            }
-            auto dist = glm::length(m_posistions[i] - m_posistions[j]);
-            if (dist < 5.0) {
-                collisions++;
-            }
-            dist_min = std::min(dist_min, dist);
-            dist_max = std::max(dist_max, dist);
-        }
-    }
-    std::cout << "Distance min:" << dist_min << " max:" << dist_max
-              << " collisions: " << collisions / 2 << std::endl;
 }

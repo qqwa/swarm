@@ -2,7 +2,7 @@
 
 [debug]
 control_camera = false
-use_cpu = false
+use_cpu = true
 manuel_tick = false
 instance_rendering = true
 # should be set to true, when profiling render time
@@ -22,7 +22,8 @@ width = 1200
 height = 800
 random_seed = 110
 tick = 0.0166667
-sphere_size = 25.0
+debug_sphere_size = 25.0
+follow_swarm_center = true
 
 [swarm]
 size = 1_000
@@ -45,6 +46,7 @@ gravitation = 9.81
 [interpolation]
 steps = 5000
 
+# unused
 ideal_distance = [
     [25, 100],
     [25, 100],
