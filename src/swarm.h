@@ -49,12 +49,56 @@ class Swarm {
 
   public:
     Swarm();
-    void reset(cl::CommandQueue &queue);
+
+    /**
+     * @brief Sets initial position, direction etc. of swarm members
+     */
+    void reset();
+    /**
+     * @brief Run one tick on CPU
+     * @param tick Current tick of the simulation, currently only used if we
+     * need to do large calculations only once on the first tick
+     * @param track_point Point which the members of the swarm want to reach
+     * @param wind Wind that gets applied to all swarm members
+     * @param gravitation Gravitation that gets applied to all swarm members
+     * @param enemy Enemy which the swarm members want to avoid
+     */
+
     void simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
                            Gravitation gravitation);
+
+    /**
+     * @brief Run one tick on GPU, before this method is called
+     * `create_kernels_and_buffers` needs to be called.
+     * @param tick Current tick of the simulation, currently only used if we
+     * need to do large calculations only once on the first tick
+     * @param track_point Point which the members of the swarm want to reach
+     * @param wind Wind that gets applied to all swarm members
+     * @param gravitation Gravitation that gets applied to all swarm members
+     * @param enemy Enemy which the swarm members want to avoid
+     */
     void simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
                            Gravitation gravitation, cl::CommandQueue &queue);
+
+    /**
+     * @brief Creates OpenCL Kernels and Buffers, this function needs to be
+     * called only once
+     * @param device OpenCL Device
+     * @param context OpenCL Context
+     */
     void create_kernels_and_buffers(cl::Device &device, cl::Context &context);
+
+    /**
+     * @brief Renders all swarm members and also the swarm center
+     * @param camera Camera to get the view and projection matrices for the
+     * shader
+     */
     void render(Camera &camera);
+
+    /**
+     * @brief Brute-force checks potential collisions between swarm members, bad
+     * for perfomance and should only be used to check how good the collision
+     * avoidance between swarm members works.
+     */
     void smallest_dist();
 };

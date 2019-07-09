@@ -46,7 +46,7 @@ Swarm::Swarm() {
     m_neighbors.reserve(config->swarm_size * 4);
 }
 
-void Swarm::reset(cl::CommandQueue &queue) {
+void Swarm::reset() {
     // arange swarm equally in a cube with edge length size^(1/3), rounded
     // upwards
 
