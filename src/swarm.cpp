@@ -44,7 +44,7 @@ Swarm::Swarm() {
     m_position_updates.reserve(config->swarm_size);
     m_orientations.reserve(config->swarm_size);
     m_scales.reserve(config->swarm_size);
-    m_neighbors.reserve(config->swarm_size*4);
+    m_neighbors.reserve(config->swarm_size * 4);
 }
 
 void Swarm::reset(cl::CommandQueue &queue) {
@@ -74,7 +74,7 @@ void Swarm::reset(cl::CommandQueue &queue) {
         int tmp = 0;
         for (int j = 0; j < count && tmp != 4; j++) {
             if (i != j) {
-                m_neighbors[i*4+tmp] = j;
+                m_neighbors[i * 4 + tmp] = j;
                 tmp++;
             }
         }
@@ -100,9 +100,9 @@ void Swarm::update_swarm_center() {
 }
 
 void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
-                          Gravitation gravitation) {
+                              Gravitation gravitation) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::simulate_tick_cpu" << std::endl;
+        std::cout << "Swarm::simulate_tick_cpu" << std::endl;
     }
     if (config->debug("use_incremental_neighbor_update") && tick == 0) {
         update_neighbors_incremental_cpu();
@@ -113,9 +113,10 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
 }
 
 void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
-                          Gravitation gravitation, cl::CommandQueue &queue) {
+                              Gravitation gravitation,
+                              cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::simulate_tick_gpu" << std::endl;
+        std::cout << "Swarm::simulate_tick_gpu" << std::endl;
     }
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
         update_neighbors_incremental_gpu(queue);
@@ -123,15 +124,15 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
         update_neighbors_gpu(queue);
     }
     simulate_gpu(track_point, wind, gravitation);
-
 }
 
 void Swarm::update_neighbors_cpu() {
-    if (config->debug("use_incremental_neighbor_update") && config->debug("skip_full_neighbor_update")) {
+    if (config->debug("use_incremental_neighbor_update") &&
+        config->debug("skip_full_neighbor_update")) {
         return;
     }
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::update_neighbors_cpu" << std::endl;
+        std::cout << "Swarm::update_neighbors_cpu" << std::endl;
     }
     config->update_neighbors_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
@@ -140,8 +141,9 @@ void Swarm::update_neighbors_cpu() {
         std::vector<float> distances = {};
 
         for (auto n = 0; n < 4; n++) {
-            neigbours.push_back(m_neighbors[i*4+n]);
-            distances.push_back(glm::length(m_posistions[m_neighbors[i*4+n]] - pos));
+            neigbours.push_back(m_neighbors[i * 4 + n]);
+            distances.push_back(
+                glm::length(m_posistions[m_neighbors[i * 4 + n]] - pos));
         }
 
         int largest = 0;
@@ -167,24 +169,26 @@ void Swarm::update_neighbors_cpu() {
             }
         }
         for (auto n = 0; n < 4; n++) {
-            m_neighbors[i*4+n] = neigbours[n];
+            m_neighbors[i * 4 + n] = neigbours[n];
         }
     }
     config->update_neighbors_cpu.Stop();
 }
 
-
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
-    if (config->debug("use_incremental_neighbor_update") && config->debug("skip_full_neighbor_update")) {
+    if (config->debug("use_incremental_neighbor_update") &&
+        config->debug("skip_full_neighbor_update")) {
         return;
     }
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::update_neighbors_gpu" << std::endl;
+        std::cout << "Swarm::update_neighbors_gpu" << std::endl;
     }
     // load data to buffer
     config->update_neighbors_gpu.Start();
 
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0, sizeof(float)*3*config->swarm_size, m_posistions.data());
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
 
     // run kernel
     auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
@@ -192,16 +196,20 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(1, m_buf_neighbors);
     kernel_neighbor.setArg(2, config->swarm_size);
     // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
-    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
     // queue.finish();
 
     // load data from buffer
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
+                                       sizeof(int) * 4 * config->swarm_size,
+                                       m_neighbors.data());
     queue.finish();
 
-    // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>() << std::endl;
-    // void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors, CL_TRUE, CL_MAP_READ, 0, 10);
-    // std::cout << "Mapped value of Buffer C at index 1: " << ((cl_int *)mapped_read)[1] << std::endl;
+    // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>()
+    // << std::endl; void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors,
+    // CL_TRUE, CL_MAP_READ, 0, 10); std::cout << "Mapped value of Buffer C at
+    // index 1: " << ((cl_int *)mapped_read)[1] << std::endl;
     // queue.enqueueUnmapMemObject(m_buf_neighbors, mapped_read);
     // for (int i = 0; i < 4; i++) {
     //     std::cout << "\t" << m_neighbors[i] << "\n";
@@ -215,7 +223,7 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
 // swarm disappears after some time? o.O
 void Swarm::update_neighbors_incremental_cpu() {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::update_neighbors_incremental_cpu" << std::endl;
+        std::cout << "Swarm::update_neighbors_incremental_cpu" << std::endl;
     }
     config->update_neighbors_incremental_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
@@ -224,8 +232,9 @@ void Swarm::update_neighbors_incremental_cpu() {
         std::vector<float> distances = {};
 
         for (auto n = 0; n < 4; n++) {
-            neigbours.push_back(m_neighbors[i*4+n]);
-            distances.push_back(glm::length(m_posistions[m_neighbors[i*4+n]] - pos));
+            neigbours.push_back(m_neighbors[i * 4 + n]);
+            distances.push_back(
+                glm::length(m_posistions[m_neighbors[i * 4 + n]] - pos));
         }
 
         int largest = 0;
@@ -238,11 +247,11 @@ void Swarm::update_neighbors_incremental_cpu() {
         // check neighbors of neighbors
         for (auto n = 0; n < 4; n++) {
             for (auto nn = 0; nn < 4; nn++) {
-                auto nn_index = n*4+nn;
+                auto nn_index = n * 4 + nn;
                 auto dist = glm::length(m_posistions[nn_index] - pos);
-                if (nn_index != i && nn_index != neigbours[0] && nn_index != neigbours[1] &&
-                    nn_index != neigbours[2] && nn_index != neigbours[3] &&
-                    dist < distances[largest]) {
+                if (nn_index != i && nn_index != neigbours[0] &&
+                    nn_index != neigbours[1] && nn_index != neigbours[2] &&
+                    nn_index != neigbours[3] && dist < distances[largest]) {
                     distances[largest] = dist;
                     neigbours[largest] = nn_index;
                     int largest = 0;
@@ -255,7 +264,7 @@ void Swarm::update_neighbors_incremental_cpu() {
             }
         }
         for (auto n = 0; n < 4; n++) {
-            m_neighbors[i*4+n] = neigbours[n];
+            m_neighbors[i * 4 + n] = neigbours[n];
         }
     }
     config->update_neighbors_incremental_cpu.Stop();
@@ -263,20 +272,26 @@ void Swarm::update_neighbors_incremental_cpu() {
 
 void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
+        std::cout << "Swarm::update_neighbors_incremental_gpu" << std::endl;
     }
     config->update_neighbors_incremental_gpu.Start();
 
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0, sizeof(float)*3*config->swarm_size, m_posistions.data());
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
 
     // run kernel
-    auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
+    auto kernel_neighbor =
+        cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
     kernel_neighbor.setArg(0, m_buf_positions);
     kernel_neighbor.setArg(1, m_buf_neighbors);
-    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange, cl::NDRange(config->swarm_size), cl::NullRange);
+    queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
     // queue.finish();
 
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors,CL_TRUE,0, sizeof(int)*4*config->swarm_size, m_neighbors.data());
+    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
+                                       sizeof(int) * 4 * config->swarm_size,
+                                       m_neighbors.data());
     queue.finish();
 
     config->update_neighbors_incremental_gpu.Stop();
@@ -286,7 +301,7 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
 void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::simulate_cpu" << std::endl;
+        std::cout << "Swarm::simulate_cpu" << std::endl;
     }
     config->update_swarm_cpu.Start();
     glm::vec3 update_swarm_center = {0, 0, 0};
@@ -307,10 +322,10 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         /////////////////////////////////////////////////////////////////////////////
         // 1. try to keep distance x between all neighbors
         /////////////////////////////////////////////////////////////////////////////
-        auto neighbor0 = m_posistions[m_neighbors[i*4+0]] - pos;
-        auto neighbor1 = m_posistions[m_neighbors[i*4+1]] - pos;
-        auto neighbor2 = m_posistions[m_neighbors[i*4+2]] - pos;
-        auto neighbor3 = m_posistions[m_neighbors[i*4+3]] - pos;
+        auto neighbor0 = m_posistions[m_neighbors[i * 4 + 0]] - pos;
+        auto neighbor1 = m_posistions[m_neighbors[i * 4 + 1]] - pos;
+        auto neighbor2 = m_posistions[m_neighbors[i * 4 + 2]] - pos;
+        auto neighbor3 = m_posistions[m_neighbors[i * 4 + 3]] - pos;
 
         auto dist_neighbor0 = glm::length(neighbor0);
         auto dist_neighbor1 = glm::length(neighbor1);
@@ -322,10 +337,10 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         auto vec_neigbour2 = glm::vec3(0, 0, 0);
         auto vec_neigbour3 = glm::vec3(0, 0, 0);
 
-        neighbor0 = glm::normalize(neighbor0);        
+        neighbor0 = glm::normalize(neighbor0);
         neighbor1 = glm::normalize(neighbor1);
         neighbor2 = glm::normalize(neighbor2);
-        neighbor3 = glm::normalize(neighbor3);        
+        neighbor3 = glm::normalize(neighbor3);
 
         // auto neighbor_dist_factor = 5.0;
         auto neighbor_dist_ideal = 250.0;
@@ -335,7 +350,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
         if (dist_neighbor0 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor0) {
-            if (dist_neighbor0 < neighbor_dist_ideal - neighbor_dist_toleration) {
+            if (dist_neighbor0 <
+                neighbor_dist_ideal - neighbor_dist_toleration) {
                 vec_neigbour0 = neighbor0 * near_factor;
                 swarm_spread += 1.5f;
             } else {
@@ -345,7 +361,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
         if (dist_neighbor1 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor1) {
-            if (dist_neighbor1 < neighbor_dist_ideal - neighbor_dist_toleration) {
+            if (dist_neighbor1 <
+                neighbor_dist_ideal - neighbor_dist_toleration) {
                 vec_neigbour1 = neighbor1 * near_factor;
                 swarm_spread += 1.5f;
             } else {
@@ -355,7 +372,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
         if (dist_neighbor2 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor2) {
-            if (dist_neighbor2 < neighbor_dist_ideal - neighbor_dist_toleration) {
+            if (dist_neighbor2 <
+                neighbor_dist_ideal - neighbor_dist_toleration) {
                 vec_neigbour2 = neighbor2 * near_factor;
                 swarm_spread += 1.5f;
             } else {
@@ -365,7 +383,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
         if (dist_neighbor3 < neighbor_dist_ideal - neighbor_dist_toleration ||
             neighbor_dist_ideal + neighbor_dist_toleration < dist_neighbor3) {
-            if (dist_neighbor3 < neighbor_dist_ideal - neighbor_dist_toleration) {
+            if (dist_neighbor3 <
+                neighbor_dist_ideal - neighbor_dist_toleration) {
                 vec_neigbour3 = neighbor3 * near_factor;
                 swarm_spread += 1.5f;
             } else {
@@ -375,14 +394,16 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
         // swarm_spread = 0.0f;
 
         // auto neihgour_factor =
-        //     std::max(glm::length(vec_neigbour0 + vec_neigbour1 + vec_neigbour2 +
+        //     std::max(glm::length(vec_neigbour0 + vec_neigbour1 +
+        //     vec_neigbour2 +
         //                          vec_neigbour3) /
         //                  4.0f,
         //              10.0f);
 
         auto neighbor_correction =
             vec_neigbour0 + vec_neigbour1 + vec_neigbour2 + vec_neigbour3;
-        // std::cout << "neighbor_correction " << glm::to_string(neighbor_correction) << std::endl;
+        // std::cout << "neighbor_correction " <<
+        // glm::to_string(neighbor_correction) << std::endl;
 
         /////////////////////////////////////////////////////////////////////////////
         // 2. try to center between neighbors
@@ -419,7 +440,8 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 
         neighbor_correction *= config->swarm_weight_neighbors;
         tp_direction *= config->swarm_weight_track_point;
-        swarm_center_direction *= (config->swarm_weight_swarm_center-swarm_spread);
+        swarm_center_direction *=
+            (config->swarm_weight_swarm_center - swarm_spread);
 
         auto target_direction = glm::normalize(
             // 25.0f * spread_direction * glm::length(m_swarm_center - pos) +
@@ -475,16 +497,15 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
 void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
                          Gravitation gravitation) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::simulate_gpu" << std::endl;
+        std::cout << "Swarm::simulate_gpu" << std::endl;
     }
     // TODO: use gpu
     simulate_cpu(track_point, wind, gravitation);
-
 }
 
 void Swarm::render(Camera &camera) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::render" << std::endl;
+        std::cout << "Swarm::render" << std::endl;
     }
     // draw birds
     glUseProgram(bird_shader);
@@ -540,8 +561,9 @@ void Swarm::render(Camera &camera) {
     colorLocation = glGetUniformLocation(center_shader, "color");
     glUniform3fv(colorLocation, 1, glm::value_ptr(center_color));
 
-    auto center =
-        Transform(m_swarm_center, glm::vec3{0, 0, 0}, glm::vec3{config->sphere_size,config->sphere_size,config->sphere_size});
+    auto center = Transform(m_swarm_center, glm::vec3{0, 0, 0},
+                            glm::vec3{config->sphere_size, config->sphere_size,
+                                      config->sphere_size});
     int modelLocation = glGetUniformLocation(center_shader, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
                        glm::value_ptr(center.GetMatrix()));
@@ -550,35 +572,41 @@ void Swarm::render(Camera &camera) {
     glEnable(GL_DEPTH_TEST);
 }
 
-
-void Swarm::create_kernels_and_buffers(cl::Device &device, cl::Context &context) {
+void Swarm::create_kernels_and_buffers(cl::Device &device,
+                                       cl::Context &context) {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::create_kernels_and_buffers" << std::endl;
+        std::cout << "Swarm::create_kernels_and_buffers" << std::endl;
     }
     int ret;
-    m_kernel_neighbor = util::getProgram("res/kernel/neighbor.ocl", context, device);
-    m_buf_positions = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*3*config->swarm_size, m_posistions.data(), &ret);
+    m_kernel_neighbor =
+        util::getProgram("res/kernel/neighbor.ocl", context, device);
+    m_buf_positions = cl::Buffer(
+        context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+        sizeof(float) * 3 * config->swarm_size, m_posistions.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
     m_buf_directions;
-    m_buf_neighbors = cl::Buffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY, sizeof(int)*4*config->swarm_size, m_neighbors.data(), &ret);
+    m_buf_neighbors = cl::Buffer(
+        context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY,
+        sizeof(int) * 4 * config->swarm_size, m_neighbors.data(), &ret);
     if (ret != CL_SUCCESS) {
-        std::cout << "CL_ERROR: (m_buf_neighbors)" << sizeof(int)*4*m_neighbors.size() << "  " << ret << std::endl;
+        std::cout << "CL_ERROR: (m_buf_neighbors)"
+                  << sizeof(int) * 4 * m_neighbors.size() << "  " << ret
+                  << std::endl;
     }
 }
 
-
 void Swarm::smallest_dist() {
     if (config->debug("trace_swarm")) {
-    std::cout << "Swarm::smallest_dist" << std::endl;
+        std::cout << "Swarm::smallest_dist" << std::endl;
     }
-    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]); 
+    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]);
     auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
     auto collisions = 0;
     for (int i = 0; i < config->swarm_size; i++) {
-        for(int j = 0; j < config->swarm_size; j++) {
-            if (i==j) {
+        for (int j = 0; j < config->swarm_size; j++) {
+            if (i == j) {
                 continue;
             }
             auto dist = glm::length(m_posistions[i] - m_posistions[j]);
@@ -589,5 +617,6 @@ void Swarm::smallest_dist() {
             dist_max = std::max(dist_max, dist);
         }
     }
-    std::cout << "Distance min:" << dist_min << " max:" << dist_max << " collisions: " << collisions/2 << std::endl;
+    std::cout << "Distance min:" << dist_min << " max:" << dist_max
+              << " collisions: " << collisions / 2 << std::endl;
 }

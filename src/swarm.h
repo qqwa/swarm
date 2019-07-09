@@ -5,11 +5,11 @@
 #include "transform.h"
 #include "util.h"
 #include "wind.h"
+#include <CL/cl.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <random>
 #include <vector>
-#include <CL/cl.hpp>
 
 class Swarm {
   private:
@@ -52,9 +52,9 @@ class Swarm {
     void reset(cl::CommandQueue &queue);
     size_t size();
     void simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
-                       Gravitation gravitation);
+                           Gravitation gravitation);
     void simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
-                       Gravitation gravitation, cl::CommandQueue &queue);
+                           Gravitation gravitation, cl::CommandQueue &queue);
     void render(Camera &camera);
     void smallest_dist();
 };

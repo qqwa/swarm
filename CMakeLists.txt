@@ -19,6 +19,8 @@ add_executable(swarm
     src/gravitation.h
     src/track_point.cpp
     src/track_point.h
+    src/enemy.cpp
+    src/enemy.h
     src/swarm_trajectory.cpp
     src/swarm_trajectory.h
     src/transform.cpp

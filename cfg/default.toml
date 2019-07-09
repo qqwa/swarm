@@ -41,11 +41,6 @@ weight_swarm_center = 0.5
 # strength
 gravitation = 9.81
 
-# position + scale
-spheres = [
-    [0.0, 0.0, 0.0, 1.0],
-]
-
 # values to interpolate between
 [interpolation]
 steps = 5000
@@ -77,6 +72,12 @@ track_point = [
     [0, 5000, 500],
     [0, 1000, 0],
     [0, 5000, 500],
+]
+
+# position + scale
+enemy = [
+    [0.0, 0.0, 0.0, 5.0],
+    [0.0, 0.0, 0.0, 50.0],
 ]
 
 # position + pitch + yaw

@@ -6,7 +6,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 
-World::World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::CommandQueue *queue) {
+World::World(GLFWwindow *window, cl::Device *device, cl::Context *context,
+             cl::CommandQueue *queue) {
     m_window = window;
     m_device = device;
     m_context = context;
@@ -17,15 +18,17 @@ World::World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::C
     m_rotation_speed = 80;
 
     m_camera.setProjection(glm::perspective(
-        glm::radians(45.0f), (float)config->width / (float)config->height, 0.1f, 10000.0f));
+        glm::radians(45.0f), (float)config->width / (float)config->height, 0.1f,
+        10000.0f));
     m_camera.update(0);
 
     tick = 0;
     m_wind = Wind();
+    m_enemy = Enemy();
     m_gravitation = Gravitation(+9.81);
 
     m_swarm.reset(*m_queue);
-    if(!config->debug("use_cpu")) {
+    if (!config->debug("use_cpu")) {
         m_swarm.create_kernels_and_buffers(*m_device, *m_context);
     }
 
@@ -66,6 +69,7 @@ void World::update(float delta) {
 
     m_wind.update(tick);
     m_track_point.update(tick);
+    m_enemy.update(tick);
 
     if (config->debug("manuel_tick")) {
         if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_PRESS && !pressed_t) {
@@ -77,12 +81,12 @@ void World::update(float delta) {
             return;
         }
     }
-    if(config->debug("use_cpu")) {
+    if (config->debug("use_cpu")) {
         m_swarm.simulate_tick_cpu(tick, m_track_point.get_pos(), m_wind,
-                            m_gravitation);
+                                  m_gravitation);
     } else {
         m_swarm.simulate_tick_gpu(tick, m_track_point.get_pos(), m_wind,
-                            m_gravitation, *m_queue);
+                                  m_gravitation, *m_queue);
     }
     if (config->debug("smallest_dist") && tick % 600 == 0) {
         m_swarm.smallest_dist();
@@ -99,6 +103,7 @@ void World::render() {
     m_swarm.render(m_camera);
     m_wind.render(m_camera);
     m_gravitation.render(m_camera);
+    m_enemy.render(m_camera);
     glDisable(GL_DEPTH_TEST);
     m_track_point.render(m_camera);
     glEnable(GL_DEPTH_TEST);

@@ -2,8 +2,7 @@
 #include <iostream>
 
 Config::Config(std::string path)
-    : render(2500, "Render"),
-      update(2500, "Update"),
+    : render(2500, "Render"), update(2500, "Update"),
       update_neighbors_cpu(2500, "Update Neighbor CPU"),
       update_swarm_cpu(2500, "Update Swarm CPU"),
       update_neighbors_incremental_cpu(2500, "Update Swarm Neighbor Inc CPU"),
@@ -63,7 +62,7 @@ Config::Config(std::string path)
     } else {
         throw std::runtime_error("config error swarm.speed");
     }
-    
+
     val_d = m_config->get_qualified_as<double>("settings.sphere_size");
     if (val_d) {
         sphere_size = *val_d;
@@ -120,17 +119,6 @@ Config::Config(std::string path)
         throw std::runtime_error("config error environment.gravitation");
     }
 
-    auto n_arr =
-        m_config->get_qualified_array_of<cpptoml::array>("environment.spheres");
-    if (n_arr) {
-        for (auto vec : *n_arr) {
-            auto val = vec->get_array_of<double>();
-            spheres.push_back(glm::vec3(val->at(0), val->at(1), val->at(2)));
-        }
-    } else {
-        throw std::runtime_error("config error environment.spheres");
-    }
-
     val = m_config->get_qualified_as<int>("interpolation.steps");
     if (val) {
         steps = *val;
@@ -138,7 +126,7 @@ Config::Config(std::string path)
         throw std::runtime_error("config error interpolation.steps");
     }
 
-    n_arr = m_config->get_qualified_array_of<cpptoml::array>(
+    auto n_arr = m_config->get_qualified_array_of<cpptoml::array>(
         "interpolation.track_point");
     if (n_arr) {
         for (auto vec : *n_arr) {
@@ -148,6 +136,18 @@ Config::Config(std::string path)
         }
     } else {
         throw std::runtime_error("config error interpolation.track_point");
+    }
+
+    n_arr =
+        m_config->get_qualified_array_of<cpptoml::array>("interpolation.enemy");
+    if (n_arr) {
+        for (auto vec : *n_arr) {
+            auto val = vec->get_array_of<double>();
+            enemy.push_back({(float)val->at(0), (float)val->at(1),
+                             (float)val->at(2), (float)val->at(3)});
+        }
+    } else {
+        throw std::runtime_error("config error interpolation.enemy");
     }
 
     n_arr =
@@ -294,6 +294,42 @@ float Config::get_wind_strength(int tick) {
 
     } else {
         auto val = wind[wind.size() - 1];
+        return val[3];
+    }
+}
+
+glm::vec3 Config::get_enemy_pos(int tick) {
+    auto n0 = tick / steps;
+    auto n1 = n0 + 1;
+    auto ratio = (float)(tick % steps) / steps;
+
+    if (n1 < enemy.size()) {
+        auto val0 = enemy[n0];
+        auto val1 = enemy[n1];
+
+        return glm::vec3((1 - ratio) * val0[0] + ratio * val1[0],
+                         (1 - ratio) * val0[1] + ratio * val1[1],
+                         (1 - ratio) * val0[2] + ratio * val1[2]);
+
+    } else {
+        auto val = enemy[enemy.size() - 1];
+        return glm::vec3(val[0], val[1], val[2]);
+    }
+}
+
+float Config::get_enemy_scale(int tick) {
+    auto n0 = tick / steps;
+    auto n1 = n0 + 1;
+    auto ratio = (float)(tick % steps) / steps;
+
+    if (n1 < enemy.size()) {
+        auto val0 = enemy[n0];
+        auto val1 = enemy[n1];
+
+        return (1 - ratio) * val0[3] + ratio * val1[3];
+
+    } else {
+        auto val = enemy[enemy.size() - 1];
         return val[3];
     }
 }

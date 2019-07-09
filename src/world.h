@@ -1,11 +1,12 @@
 #pragma once
 
 #include "util.h"
+#include <CL/cl.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <CL/cl.hpp>
 
 #include "camera.h"
+#include "enemy.h"
 #include "gravitation.h"
 #include "swarm.h"
 #include "track_point.h"
@@ -31,13 +32,15 @@ class World {
     Wind m_wind;
     Gravitation m_gravitation;
     TrackPoint m_track_point;
+    Enemy m_enemy;
 
     int tick;
 
     bool pressed_t;
 
   public:
-    World(GLFWwindow *window, cl::Device *device, cl::Context *context, cl::CommandQueue *queue);
+    World(GLFWwindow *window, cl::Device *device, cl::Context *context,
+          cl::CommandQueue *queue);
     void update(float delta);
     void render();
 };

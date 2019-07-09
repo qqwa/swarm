@@ -11,6 +11,7 @@ class Config {
     std::vector<std::vector<float>> camera;
     std::vector<std::vector<float>> track_point;
     std::vector<std::vector<float>> wind;
+    std::vector<std::vector<float>> enemy;
 
   public:
     int width;
@@ -27,7 +28,6 @@ class Config {
     float swarm_weight_track_point;
     float swarm_weight_swarm_center;
     float gravitation;
-    std::vector<glm::vec3> spheres;
 
     Profiler render;
     Profiler update;
@@ -43,6 +43,8 @@ class Config {
     bool debug(std::string key) const;
 
     glm::vec3 get_track_point(int tick);
+    glm::vec3 get_enemy_pos(int tick);
+    float get_enemy_scale(int tick);
     glm::vec3 get_camera_pos(int tick);
     float get_camera_pitch(int tick);
     float get_camera_yaw(int tick);
