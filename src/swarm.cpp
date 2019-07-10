@@ -316,6 +316,107 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
     }
     config->update_swarm_cpu.Start();
     // TODO: clean implementation
+    std::vector<glm::vec3> position_updates;
+    position_updates.reserve(config->swarm_size);
+
+    for (int i = 0; i < config->swarm_size; i++) {
+        auto pos = m_posistions[i];
+
+        // initalize values used to calculate target direction
+        glm::vec3 neighbor_dir = glm::vec3(0);
+        float neighbor_factor = 1;
+
+        glm::vec3 enemy_dodge_dir = glm::vec3(0);
+        float enemy_dodge_factor = 0;
+
+        glm::vec3 swarm_center_dir = glm::vec3(0);
+        float swarm_center_factor = 0;
+
+        glm::vec3 swarm_target_dir = glm::vec3(0);
+        float swarm_target_factor = 0;
+
+        // TODO: neighbor_dir
+        auto vec_to_neighbor0 = pos - m_posistions[m_neighbors[i * 4 + 0]];
+        auto vec_to_neighbor1 = pos - m_posistions[m_neighbors[i * 4 + 1]];
+        auto vec_to_neighbor2 = pos - m_posistions[m_neighbors[i * 4 + 2]];
+        auto vec_to_neighbor3 = pos - m_posistions[m_neighbors[i * 4 + 3]];
+
+        auto neighbor_dist_min = 50.0;
+        auto neighbor_dist_max = 250.0;
+
+        auto dist = glm::length(vec_to_neighbor0);
+        if (dist < neighbor_dist_min) {
+            // away from neighbor0 by some amount
+            float fact = neighbor_dist_min / dist;
+            neighbor_dir -= glm::normalize(vec_to_neighbor0)*fact;
+            neighbor_factor *= 2;
+        } else if (neighbor_dist_max < dist) {
+            // towards neighbor0 by some amount
+            float fact = dist / neighbor_dist_max;
+            neighbor_dir += glm::normalize(vec_to_neighbor0)*fact;
+            neighbor_factor *= 2;
+        }
+
+        dist = glm::length(vec_to_neighbor1);
+        if (dist < neighbor_dist_min) {
+            float fact = neighbor_dist_min / dist;
+            neighbor_dir -= glm::normalize(vec_to_neighbor1)*fact;
+            neighbor_factor *= 2;
+        } else if (neighbor_dist_max < dist) {
+            float fact = dist / neighbor_dist_max;
+            neighbor_dir += glm::normalize(vec_to_neighbor1)*fact;
+            neighbor_factor *= 2;
+        }
+
+        dist = glm::length(vec_to_neighbor2);
+        if (dist < neighbor_dist_min) {
+            float fact = neighbor_dist_min / dist;
+            neighbor_dir -= glm::normalize(vec_to_neighbor2)*fact;
+            neighbor_factor *= 2;
+        } else if (neighbor_dist_max < dist) {
+            float fact = dist / neighbor_dist_max;
+            neighbor_dir += glm::normalize(vec_to_neighbor2)*fact;
+            neighbor_factor *= 2;
+        }
+
+        dist = glm::length(vec_to_neighbor3);
+        if (dist < neighbor_dist_min) {
+            float fact = neighbor_dist_min / dist;
+            neighbor_dir -= glm::normalize(vec_to_neighbor3)*fact;
+            neighbor_factor *= 2;
+        } else if (neighbor_dist_max < dist) {
+            float fact = dist / neighbor_dist_max;
+            neighbor_dir += glm::normalize(vec_to_neighbor3)*fact;
+            neighbor_factor *= 2;
+        }
+
+        // TODO: enemy_dodge_dir
+
+        // TODO: swarm_center_dir
+
+        // TODO: swarm_target_dir
+
+        // member target dir
+        glm::vec3 target_dir = neighbor_dir * neighbor_factor;
+
+        // update current direction towards new target direction
+        auto final_direction =
+            m_orientations[i] + target_dir * 0.33f * config->tick;
+        final_direction = glm::normalize(final_direction);
+        auto pos_update = final_direction * config->swarm_speed * config->tick;
+
+        position_updates[i] = pos_update;
+        m_orientations[i] = {final_direction};
+    }
+
+    // apply position update
+    glm::vec3 update_swarm_center = {0, 0, 0};
+    for (int i = 0; i < config->swarm_size; i++) {
+        m_posistions[i] += position_updates[i];
+        update_swarm_center +=
+            position_updates[i] / (float)config->swarm_size;
+    }
+    m_swarm_center += update_swarm_center;
 
     config->update_swarm_cpu.Stop();
 }
@@ -626,7 +727,7 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
         std::cout << "Swarm::simulate_gpu_members" << std::endl;
     }
     // TODO: use gpu
-    simulate_cpu_members(track_point, enemy);
+    simulate_cpu_members_v2(track_point, enemy);
 }
 
 
