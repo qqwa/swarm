@@ -203,7 +203,8 @@ void Swarm::simulate_tick_cpu(int tick, glm::vec3 track_point, Wind wind,
     } else {
         update_neighbors_cpu();
     }
-    simulate_cpu_v2(track_point, wind, gravitation, enemy);
+    simulate_cpu_external_forces(wind, gravitation);
+    simulate_cpu_members_v2(track_point, enemy);
 }
 
 void Swarm::update_neighbors_cpu() {
@@ -304,10 +305,9 @@ void Swarm::update_neighbors_incremental_cpu() {
     config->update_neighbors_incremental_cpu.Stop();
 }
 
-void Swarm::simulate_cpu_v2(glm::vec3 track_point, Wind wind,
-                            Gravitation gravitation, Enemy enemy) {
+void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
     if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::simulate_cpu" << std::endl;
+        std::cout << "Swarm::simulate_cpu_members_v2" << std::endl;
     }
     config->update_swarm_cpu.Start();
     // TODO: clean implementation
@@ -316,25 +316,15 @@ void Swarm::simulate_cpu_v2(glm::vec3 track_point, Wind wind,
 }
 
 // programmed as it were a "kernel"
-void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
-                         Gravitation gravitation) {
+void Swarm::simulate_cpu_members(glm::vec3 track_point) {
     if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::simulate_cpu" << std::endl;
+        std::cout << "Swarm::simulate_cpu_members" << std::endl;
     }
     config->update_swarm_cpu.Start();
     glm::vec3 calculate_swarm_center = {0, 0, 0};
     std::vector<glm::vec3> position_updates;
     position_updates.reserve(config->swarm_size);
     // std::cout << "simulate cpu" << std::endl;
-
-    // apply external forces
-    for (int i = 0; i < config->swarm_size; i++) {
-        auto pos = m_posistions[i];
-        pos += wind.get_force() * config->tick;
-
-        m_posistions[i] = pos;
-    }
-    m_swarm_center += wind.get_force() * config->tick;
 
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_posistions[i];
@@ -514,6 +504,21 @@ void Swarm::simulate_cpu(glm::vec3 track_point, Wind wind,
     config->update_swarm_cpu.Stop();
 }
 
+
+void Swarm::simulate_cpu_external_forces(Wind wind, Gravitation gravitation) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::simulate_cpu_external_forces" << std::endl;
+    }
+    for (int i = 0; i < config->swarm_size; i++) {
+        auto pos = m_posistions[i];
+        pos += wind.get_force() * config->tick;
+        pos += gravitation.get_force() * config->tick;
+        m_posistions[i] = pos;
+    }
+    m_swarm_center += wind.get_force() * config->tick;
+    m_swarm_center += gravitation.get_force() * config->tick;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // GPU Implementation
 /////////////////////////////////////////////////////////////////////////////
@@ -529,7 +534,8 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
     } else {
         update_neighbors_gpu(queue);
     }
-    simulate_gpu(track_point, wind, gravitation, enemy, queue);
+    simulate_gpu_external_forces(wind, gravitation);
+    simulate_gpu_members(track_point, enemy, queue);
 }
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
@@ -604,14 +610,22 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     config->update_neighbors_incremental_gpu.Stop();
 }
 
-void Swarm::simulate_gpu(glm::vec3 track_point, Wind wind,
-                         Gravitation gravitation, Enemy enemy,
+void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
                          cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
-        std::cout << "Swarm::simulate_gpu" << std::endl;
+        std::cout << "Swarm::simulate_gpu_members" << std::endl;
     }
     // TODO: use gpu
-    simulate_cpu(track_point, wind, gravitation);
+    simulate_cpu_members(track_point, enemy);
+}
+
+
+void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation) {
+    if (config->debug("trace_swarm")) {
+        std::cout << "Swarm::simulate_gpu_external_forces" << std::endl;
+    }
+    // TODO: use gpu
+    simulate_cpu_external_forces(wind, gravitation);
 }
 
 void Swarm::create_kernels_and_buffers(cl::Device &device,
