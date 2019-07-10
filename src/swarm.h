@@ -38,14 +38,14 @@ class Swarm {
     std::mt19937_64 m_random;
     void calculate_swarm_center();
 
-    void simulate_cpu_members(glm::vec3 track_point);
+    void simulate_cpu_members(glm::vec3 track_point, Enemy enemy);
     void simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy);
     void simulate_cpu_external_forces(Wind wind, Gravitation gravitation);
     void update_neighbors_cpu();
     void update_neighbors_incremental_cpu();
 
     void simulate_gpu_members(glm::vec3 track_point, Enemy enemy, cl::CommandQueue &queue);
-    void simulate_gpu_external_forces(Wind wind, Gravitation gravitation);
+    void simulate_gpu_external_forces(Wind wind, Gravitation gravitation, cl::CommandQueue &queue);
     void update_neighbors_gpu(cl::CommandQueue &queue);
     void update_neighbors_incremental_gpu(cl::CommandQueue &queue);
 
