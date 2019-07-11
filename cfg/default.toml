@@ -80,7 +80,7 @@ track_point = [
 # position + scale
 enemy = [
     [0.0, 0.0, 0.0, 5.0],
-    [0.0, 0.0, 0.0, 50.0],
+    [0.0, 0.0, 0.0, 1000.0],
 ]
 
 # position + pitch + yaw

@@ -398,17 +398,17 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         }
 
         auto vec_to_enemy = enemy.get_pos() - pos;
-        auto dist_to_enemy = glm::length(vec_to_enemy) - 5 - enemy.get_size(); // 5 is size of bird itself
-        float min_dist_to_enemy = 100;
+        auto dist_to_enemy = glm::length(vec_to_enemy); 
+        float min_dist_to_enemy = 300 + 5 + enemy.get_size(); // 5 is size of bird itself
 
-        if (min_dist_to_enemy > dist_to_enemy) {
-            enemy_dodge_factor = min_dist_to_enemy / dist_to_enemy; // gets larger if enemy is nearer
+        if (dist_to_enemy < min_dist_to_enemy) {
+            enemy_dodge_factor = 30; // bird panics if enemy is to close
             enemy_dodge_dir -= glm::normalize(vec_to_enemy);
         }
 
         float desired_swarm_radius = (int)ceil(pow(config->swarm_size, 1.f / 3.f)) * config->swarm_initial_spread;
         auto vec_to_swarm_center = m_swarm_center - pos;
-        swarm_center_factor = glm::length(vec_to_swarm_center) / desired_swarm_radius;
+        swarm_center_factor = (glm::length(vec_to_swarm_center) / desired_swarm_radius) * 5;
         swarm_center_dir += glm::normalize(vec_to_swarm_center);
 
         auto vec_to_track_point = track_point - pos;
