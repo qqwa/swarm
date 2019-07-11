@@ -34,4 +34,4 @@ void Enemy::render(Camera &camera) {
 
 glm::vec3 Enemy::get_pos() const { return m_transform.GetPosition(); }
 
-float Enemy::get_size() const { return m_transform.GetScale().x; }  
+float Enemy::get_size() const { return m_transform.GetScale().x; }

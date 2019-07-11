@@ -43,8 +43,10 @@ class Swarm {
     void update_neighbors_cpu();
     void update_neighbors_incremental_cpu();
 
-    void simulate_gpu_members(glm::vec3 track_point, Enemy enemy, cl::CommandQueue &queue);
-    void simulate_gpu_external_forces(Wind wind, Gravitation gravitation, cl::CommandQueue &queue);
+    void simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
+                              cl::CommandQueue &queue);
+    void simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
+                                      cl::CommandQueue &queue);
     void update_neighbors_gpu(cl::CommandQueue &queue);
     void update_neighbors_incremental_gpu(cl::CommandQueue &queue);
 
