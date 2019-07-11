@@ -410,11 +410,18 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         }
 
         // TODO: swarm_center_dir
+        float desired_swarm_radius = (int)ceil(pow(config->swarm_size, 1.f / 3.f)) * config->swarm_initial_spread;
+        auto vec_to_swarm_center = m_swarm_center - pos;
+        swarm_center_factor = glm::length(vec_to_swarm_center) / desired_swarm_radius;
+        swarm_center_dir += glm::normalize(vec_to_swarm_center);
 
         // TODO: swarm_target_dir
 
         // member target dir
-        glm::vec3 target_dir = neighbor_dir * neighbor_factor + enemy_dodge_dir * enemy_dodge_factor;
+        glm::vec3 target_dir = neighbor_dir * neighbor_factor 
+            + enemy_dodge_dir * enemy_dodge_factor
+            + swarm_center_dir * swarm_center_factor
+            + swarm_target_dir * swarm_target_factor;
 
         if (i == 0 && config->debug("print_bird_debug")) {
             std::cout << "neighbor_factor: " << neighbor_factor << "\n"
@@ -425,7 +432,7 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
 
         // update current direction towards new target direction
         auto final_direction =
-            m_orientations[i] + target_dir * 0.33f * config->tick;
+            m_orientations[i] + target_dir * 0.01f * config->tick;
         final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * config->tick;
 
