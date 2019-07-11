@@ -39,7 +39,6 @@ class Swarm {
     void calculate_swarm_center();
 
     void simulate_cpu_members(glm::vec3 track_point, Enemy enemy);
-    void simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy);
     void simulate_cpu_external_forces(Wind wind, Gravitation gravitation);
     void update_neighbors_cpu();
     void update_neighbors_incremental_cpu();
