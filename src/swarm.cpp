@@ -336,10 +336,10 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         float swarm_target_factor = 0;
 
         // TODO: neighbor_dir
-        auto vec_to_neighbor0 = pos - m_posistions[m_neighbors[i * 4 + 0]];
-        auto vec_to_neighbor1 = pos - m_posistions[m_neighbors[i * 4 + 1]];
-        auto vec_to_neighbor2 = pos - m_posistions[m_neighbors[i * 4 + 2]];
-        auto vec_to_neighbor3 = pos - m_posistions[m_neighbors[i * 4 + 3]];
+        auto vec_to_neighbor0 = m_posistions[m_neighbors[i * 4 + 0]] - pos;
+        auto vec_to_neighbor1 = m_posistions[m_neighbors[i * 4 + 1]] - pos;
+        auto vec_to_neighbor2 = m_posistions[m_neighbors[i * 4 + 2]] - pos;
+        auto vec_to_neighbor3 = m_posistions[m_neighbors[i * 4 + 3]] - pos;
 
         auto neighbor_dist_min = 50.0;
         auto neighbor_dist_max = 250.0;
