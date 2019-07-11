@@ -17,4 +17,5 @@ class Enemy {
     void update(int tick);
     void render(Camera &camera);
     glm::vec3 get_pos() const;
+    float get_size() const;
 };

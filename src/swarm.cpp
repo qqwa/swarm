@@ -348,11 +348,13 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         if (dist < neighbor_dist_min) {
             // away from neighbor0 by some amount
             float fact = neighbor_dist_min / dist;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist0: " << dist << std::endl;
             neighbor_dir -= glm::normalize(vec_to_neighbor0)*fact;
             neighbor_factor *= 2;
         } else if (neighbor_dist_max < dist) {
             // towards neighbor0 by some amount
             float fact = dist / neighbor_dist_max;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist0: " << dist << std::endl;
             neighbor_dir += glm::normalize(vec_to_neighbor0)*fact;
             neighbor_factor *= 2;
         }
@@ -360,10 +362,12 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         dist = glm::length(vec_to_neighbor1);
         if (dist < neighbor_dist_min) {
             float fact = neighbor_dist_min / dist;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist1: " << dist << std::endl;
             neighbor_dir -= glm::normalize(vec_to_neighbor1)*fact;
             neighbor_factor *= 2;
         } else if (neighbor_dist_max < dist) {
             float fact = dist / neighbor_dist_max;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist1: " << dist << std::endl;
             neighbor_dir += glm::normalize(vec_to_neighbor1)*fact;
             neighbor_factor *= 2;
         }
@@ -371,10 +375,12 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         dist = glm::length(vec_to_neighbor2);
         if (dist < neighbor_dist_min) {
             float fact = neighbor_dist_min / dist;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist2: " << dist << std::endl;
             neighbor_dir -= glm::normalize(vec_to_neighbor2)*fact;
             neighbor_factor *= 2;
         } else if (neighbor_dist_max < dist) {
             float fact = dist / neighbor_dist_max;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist2: " << dist << std::endl;
             neighbor_dir += glm::normalize(vec_to_neighbor2)*fact;
             neighbor_factor *= 2;
         }
@@ -382,22 +388,40 @@ void Swarm::simulate_cpu_members_v2(glm::vec3 track_point, Enemy enemy) {
         dist = glm::length(vec_to_neighbor3);
         if (dist < neighbor_dist_min) {
             float fact = neighbor_dist_min / dist;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist3: " << dist << std::endl;
             neighbor_dir -= glm::normalize(vec_to_neighbor3)*fact;
             neighbor_factor *= 2;
         } else if (neighbor_dist_max < dist) {
             float fact = dist / neighbor_dist_max;
+            if (i == 0 && config->debug("print_bird_debug")) std::cout << "dist3: " << dist << std::endl;
             neighbor_dir += glm::normalize(vec_to_neighbor3)*fact;
             neighbor_factor *= 2;
         }
 
         // TODO: enemy_dodge_dir
 
+        auto vec_to_enemy = enemy.get_pos() - pos;
+        auto dist_to_enemy = glm::length(vec_to_enemy) - 5 - enemy.get_size(); // 5 is size of bird itself
+        float min_dist_to_enemy = 100;
+
+        if (min_dist_to_enemy > dist_to_enemy) {
+            enemy_dodge_factor = min_dist_to_enemy / dist_to_enemy; // gets larger if enemy is nearer
+            enemy_dodge_dir -= glm::normalize(vec_to_enemy);
+        }
+
         // TODO: swarm_center_dir
 
         // TODO: swarm_target_dir
 
         // member target dir
-        glm::vec3 target_dir = neighbor_dir * neighbor_factor;
+        glm::vec3 target_dir = neighbor_dir * neighbor_factor + enemy_dodge_dir * enemy_dodge_factor;
+
+        if (i == 0 && config->debug("print_bird_debug")) {
+            std::cout << "neighbor_factor: " << neighbor_factor << "\n"
+                        << "enemy_dodge_factor: " << enemy_dodge_factor << "\n"
+                        << "swarm_center_factor: " << swarm_center_factor << "\n"
+                        << "swarm_target_factor: " << swarm_target_factor << std::endl;
+        }
 
         // update current direction towards new target direction
         auto final_direction =
