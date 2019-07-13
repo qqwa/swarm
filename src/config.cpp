@@ -13,7 +13,8 @@ Config::Config(std::string path)
       update_neighbors_gpu(2500, "Update Neighbor GPU"),
       update_swarm_gpu(2500, "Update Swarm GPU"),
       update_neighbors_incremental_gpu(2500, "Update Swarm Neighbor Inc GPU"),
-      update_external_forces_gpu(2500, "Update External Forces GPU") {
+      update_external_forces_gpu(2500, "Update External Forces GPU"),
+      copy_buffer_gpu(2500, "Copying data from GPU to CPU") {
     m_config = cpptoml::parse_file(path);
     std::cout << "loading config " << path << " " << m_config << "..."
               << std::endl;

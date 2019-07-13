@@ -41,6 +41,7 @@ class Config {
     Profiler update_neighbors_incremental_gpu;
     Profiler update_swarm_gpu;
     Profiler update_external_forces_gpu;
+    Profiler copy_buffer_gpu;
 
   public:
     Config(std::string path);

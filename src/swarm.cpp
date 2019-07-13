@@ -502,11 +502,6 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_tick_gpu" << std::endl;
     }
-
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_positions.data());
-
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
         update_neighbors_incremental_gpu(queue);
     } else {
@@ -518,22 +513,18 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
         }
     }
     simulate_gpu_external_forces(wind, gravitation, queue);
+    simulate_gpu_members(track_point, enemy, queue);
 
-    // load data from buffer
-    queue.enqueueReadBuffer(m_buf_neighbors, CL_FALSE, 0,
-                                       sizeof(int) * 4 * config->swarm_size,
-                                       m_neighbors.data());
-
-    queue.enqueueReadBuffer(m_buf_positions, CL_FALSE, 0,
+    config->copy_buffer_gpu.Start();
+    queue.enqueueReadBuffer(m_buf_positions, CL_TRUE, 0,
                              sizeof(float) * 3 * config->swarm_size,
                              m_positions.data());
 
-    queue.enqueueReadBuffer(m_buf_directions, CL_FALSE, 0,
+    queue.enqueueReadBuffer(m_buf_directions, CL_TRUE, 0,
                              sizeof(float) * 3 * config->swarm_size,
                              m_orientations.data());
     queue.finish();
-
-    simulate_gpu_members(track_point, enemy, queue);
+    config->copy_buffer_gpu.Stop();
 }
 
 void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
@@ -557,8 +548,9 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
 
+    queue.finish();
     config->update_neighbors_gpu.Stop();
-};
+}
 
 void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     if (config->debug("trace_swarm")) {
@@ -574,6 +566,7 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
 
+    queue.finish();
     config->update_neighbors_incremental_gpu.Stop();
 }
 
@@ -666,25 +659,25 @@ void Swarm::create_kernels_and_buffers(cl::Device &device,
     m_kernel_swarm_update =
         util::getProgram("res/kernel/swarm_update.ocl", context, device);
     m_buf_positions = cl::Buffer(
-        context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+        context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
         sizeof(float) * 3 * config->swarm_size, m_positions.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
     m_buf_position_updates = cl::Buffer(
-        context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY,
+        context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
         sizeof(float) * 3 * config->swarm_size, m_position_updates.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
     m_buf_directions = cl::Buffer(
-        context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+        context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
         sizeof(float) * 3 * config->swarm_size, m_orientations.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
     m_buf_neighbors = cl::Buffer(
-        context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY,
+        context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
         sizeof(int) * 4 * config->swarm_size, m_neighbors.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_neighbors)"

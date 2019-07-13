@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
     std::cout << "\t" << config->update_neighbors_incremental_gpu << std::endl;
     std::cout << "\t" << config->update_swarm_gpu << std::endl;
     std::cout << "\t" << config->update_external_forces_gpu << std::endl;
+    std::cout << "\t" << config->copy_buffer_gpu << std::endl;
 
     std::cout << config->render << std::endl;
 

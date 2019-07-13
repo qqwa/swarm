@@ -16,7 +16,7 @@ skip_full_neighbor_update = true
 camera_position = false
 swarm_reset = true
 smallest_dist = false
-trace_swarm = false
+trace_swarm = true
 
 [settings]
 width = 1200
@@ -27,7 +27,7 @@ debug_sphere_size = 25.0
 follow_swarm_center = true
 
 [swarm]
-size = 1_000_000
+size = 1_000
 start = [200.0, 150.0, 0.0]
 speed = 50.0
 
