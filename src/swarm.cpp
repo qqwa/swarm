@@ -499,6 +499,11 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_tick_gpu" << std::endl;
     }
+
+    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
+
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
         update_neighbors_incremental_gpu(queue);
     } else {
@@ -510,6 +515,17 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
         }
     }
     simulate_gpu_external_forces(wind, gravitation, queue);
+
+    // load data from buffer
+    queue.enqueueReadBuffer(m_buf_neighbors, CL_FALSE, 0,
+                                       sizeof(int) * 4 * config->swarm_size,
+                                       m_neighbors.data());
+
+    queue.enqueueReadBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_posistions.data());
+    queue.finish();
+
     simulate_gpu_members(track_point, enemy, queue);
 }
 
@@ -524,9 +540,7 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     // load data to buffer
     config->update_neighbors_gpu.Start();
 
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
+    
 
     // run kernel
     auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
@@ -535,12 +549,6 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(2, config->swarm_size);
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
-
-    // load data from buffer
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
-                                       sizeof(int) * 4 * config->swarm_size,
-                                       m_neighbors.data());
-    queue.finish();
 
     config->update_neighbors_gpu.Stop();
 };
@@ -551,10 +559,6 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     }
     config->update_neighbors_incremental_gpu.Start();
 
-    queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
-
     // run kernel
     auto kernel_neighbor =
         cl::Kernel(m_kernel_neighbor, "update_neighbor_incremental");
@@ -562,12 +566,6 @@ void Swarm::update_neighbors_incremental_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(1, m_buf_neighbors);
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
-    // queue.finish();
-
-    auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
-                                       sizeof(int) * 4 * config->swarm_size,
-                                       m_neighbors.data());
-    queue.finish();
 
     config->update_neighbors_incremental_gpu.Stop();
 }
