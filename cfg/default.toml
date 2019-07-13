@@ -27,13 +27,13 @@ debug_sphere_size = 25.0
 follow_swarm_center = true
 
 [swarm]
-size = 1_000
+size = 100_000
 start = [200.0, 150.0, 0.0]
 speed = 50.0
 
 initial_spread = 40
 
-
+# only for cpu implementation
 weight_neighbors = 1.0
 weight_enemy = 1.0
 weight_track_point = 1.0
