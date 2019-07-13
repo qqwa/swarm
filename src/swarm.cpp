@@ -15,7 +15,7 @@ Swarm::Swarm() {
         glGenBuffers(1, &instance_pos_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
-                     m_posistions.data(), GL_DYNAMIC_DRAW);
+                     m_positions.data(), GL_DYNAMIC_DRAW);
 
         glGenBuffers(1, &instance_dir_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
@@ -40,7 +40,8 @@ Swarm::Swarm() {
     center_mesh = util::loadMesh("res/sphere.obj");
     center_shader = util::getShader("res/shader/default");
 
-    m_posistions.reserve(config->swarm_size);
+    m_positions.reserve(config->swarm_size);
+    m_position_updates.reserve(config->swarm_size);
     m_orientations.reserve(config->swarm_size);
     m_scales.reserve(config->swarm_size);
     m_neighbors.reserve(config->swarm_size * 4);
@@ -61,7 +62,7 @@ void Swarm::reset() {
     for (int i = 0; i < count; i++) {
         auto pos = glm::vec3{gen_coord(m_random), gen_coord(m_random),
                              gen_coord(m_random)};
-        m_posistions[i] = config->swarm_start + pos;
+        m_positions[i] = config->swarm_start + pos;
         m_orientations[i] = glm::vec3{1, 1, 1};
         m_scales.push_back({1, 1, 1});
     }
@@ -87,9 +88,9 @@ void Swarm::calculate_swarm_center() {
     double z = 0.0;
 
     for (int i = 0; i < config->swarm_size; i++) {
-        x += (double)m_posistions[i].x / config->swarm_size;
-        y += (double)m_posistions[i].y / config->swarm_size;
-        z += (double)m_posistions[i].z / config->swarm_size;
+        x += (double)m_positions[i].x / config->swarm_size;
+        y += (double)m_positions[i].y / config->swarm_size;
+        z += (double)m_positions[i].z / config->swarm_size;
     }
 
     m_swarm_center = {x, y, z};
@@ -115,7 +116,7 @@ void Swarm::render(Camera &camera) {
         // update instance buffers
         glBindBuffer(GL_ARRAY_BUFFER, instance_pos_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
-                     m_posistions.data(), GL_DYNAMIC_DRAW);
+                     m_positions.data(), GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, instance_dir_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * config->swarm_size,
@@ -128,8 +129,8 @@ void Swarm::render(Camera &camera) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     } else {
         for (int i = 0; i < config->swarm_size; i++) {
-            auto model = glm::lookAt(m_posistions[i],
-                                     m_posistions[i] - m_orientations[i],
+            auto model = glm::lookAt(m_positions[i],
+                                     m_positions[i] - m_orientations[i],
                                      {0.0f, 1.0f, 0.0f});
             model = glm::inverse(model);
             int modelLocation = glGetUniformLocation(bird_shader, "model");
@@ -169,15 +170,15 @@ void Swarm::smallest_dist() {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::smallest_dist" << std::endl;
     }
-    auto dist_min = glm::length(m_posistions[0] - m_posistions[1]);
-    auto dist_max = glm::length(m_posistions[0] - m_posistions[1]);
+    auto dist_min = glm::length(m_positions[0] - m_positions[1]);
+    auto dist_max = glm::length(m_positions[0] - m_positions[1]);
     auto collisions = 0;
     for (int i = 0; i < config->swarm_size; i++) {
         for (int j = 0; j < config->swarm_size; j++) {
             if (i == j) {
                 continue;
             }
-            auto dist = glm::length(m_posistions[i] - m_posistions[j]);
+            auto dist = glm::length(m_positions[i] - m_positions[j]);
             if (dist < 5.0) {
                 collisions++;
             }
@@ -222,14 +223,14 @@ void Swarm::update_neighbors_cpu() {
     }
     config->update_neighbors_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
-        auto pos = m_posistions[i];
+        auto pos = m_positions[i];
         std::vector<size_t> neigbours = {};
         std::vector<float> distances = {};
 
         for (auto n = 0; n < 4; n++) {
             neigbours.push_back(m_neighbors[i * 4 + n]);
             distances.push_back(
-                glm::length(m_posistions[m_neighbors[i * 4 + n]] - pos));
+                glm::length(m_positions[m_neighbors[i * 4 + n]] - pos));
         }
 
         int largest = 0;
@@ -240,7 +241,7 @@ void Swarm::update_neighbors_cpu() {
         }
 
         for (int j = 4; j < config->swarm_size; j++) {
-            auto dist = glm::length(m_posistions[j] - pos);
+            auto dist = glm::length(m_positions[j] - pos);
             if (i != j && j != neigbours[0] && j != neigbours[1] &&
                 j != neigbours[2] && j != neigbours[3] &&
                 dist < distances[largest]) {
@@ -267,14 +268,14 @@ void Swarm::update_neighbors_incremental_cpu() {
     }
     config->update_neighbors_incremental_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
-        auto pos = m_posistions[i];
+        auto pos = m_positions[i];
         std::vector<size_t> neigbours = {};
         std::vector<float> distances = {};
 
         for (auto n = 0; n < 4; n++) {
             neigbours.push_back(m_neighbors[i * 4 + n]);
             distances.push_back(
-                glm::length(m_posistions[m_neighbors[i * 4 + n]] - pos));
+                glm::length(m_positions[m_neighbors[i * 4 + n]] - pos));
         }
 
         int largest = 0;
@@ -288,7 +289,7 @@ void Swarm::update_neighbors_incremental_cpu() {
         for (auto n = 0; n < 4; n++) {
             for (auto nn = 0; nn < 4; nn++) {
                 auto nn_index = n * 4 + nn;
-                auto dist = glm::length(m_posistions[nn_index] - pos);
+                auto dist = glm::length(m_positions[nn_index] - pos);
                 if (nn_index != i && nn_index != neigbours[0] &&
                     nn_index != neigbours[1] && nn_index != neigbours[2] &&
                     nn_index != neigbours[3] && dist < distances[largest]) {
@@ -320,7 +321,7 @@ void Swarm::simulate_cpu_members(glm::vec3 track_point, Enemy enemy) {
     position_updates.reserve(config->swarm_size);
 
     for (int i = 0; i < config->swarm_size; i++) {
-        auto pos = m_posistions[i];
+        auto pos = m_positions[i];
 
         // initalize values used to calculate target direction
         glm::vec3 neighbor_dir = glm::vec3(0);
@@ -335,10 +336,10 @@ void Swarm::simulate_cpu_members(glm::vec3 track_point, Enemy enemy) {
         glm::vec3 swarm_target_dir = glm::vec3(0);
         float swarm_target_factor = 0;
 
-        auto vec_to_neighbor0 = m_posistions[m_neighbors[i * 4 + 0]] - pos;
-        auto vec_to_neighbor1 = m_posistions[m_neighbors[i * 4 + 1]] - pos;
-        auto vec_to_neighbor2 = m_posistions[m_neighbors[i * 4 + 2]] - pos;
-        auto vec_to_neighbor3 = m_posistions[m_neighbors[i * 4 + 3]] - pos;
+        auto vec_to_neighbor0 = m_positions[m_neighbors[i * 4 + 0]] - pos;
+        auto vec_to_neighbor1 = m_positions[m_neighbors[i * 4 + 1]] - pos;
+        auto vec_to_neighbor2 = m_positions[m_neighbors[i * 4 + 2]] - pos;
+        auto vec_to_neighbor3 = m_positions[m_neighbors[i * 4 + 3]] - pos;
 
         auto neighbor_dist_min = 50.0;
         auto neighbor_dist_max = 250.0;
@@ -456,7 +457,7 @@ void Swarm::simulate_cpu_members(glm::vec3 track_point, Enemy enemy) {
 
         // update current direction towards new target direction
         auto final_direction =
-            m_orientations[i] + target_dir * 0.01f * config->tick;
+            m_orientations[i] + glm::normalize(target_dir) * 0.33f * config->tick;
         final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * config->tick;
 
@@ -467,7 +468,7 @@ void Swarm::simulate_cpu_members(glm::vec3 track_point, Enemy enemy) {
     // apply position update
     glm::vec3 update_swarm_center = {0, 0, 0};
     for (int i = 0; i < config->swarm_size; i++) {
-        m_posistions[i] += position_updates[i];
+        m_positions[i] += position_updates[i];
         update_swarm_center += position_updates[i] / (float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
@@ -480,10 +481,10 @@ void Swarm::simulate_cpu_external_forces(Wind wind, Gravitation gravitation) {
         std::cout << "Swarm::simulate_cpu_external_forces" << std::endl;
     }
     for (int i = 0; i < config->swarm_size; i++) {
-        auto pos = m_posistions[i];
+        auto pos = m_positions[i];
         pos += wind.get_force() * config->tick;
         pos += gravitation.get_force() * config->tick;
-        m_posistions[i] = pos;
+        m_positions[i] = pos;
     }
     m_swarm_center += wind.get_force() * config->tick;
     m_swarm_center += gravitation.get_force() * config->tick;
@@ -502,7 +503,7 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
 
     queue.enqueueWriteBuffer(m_buf_positions, CL_FALSE, 0,
                              sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
+                             m_positions.data());
 
     if (config->debug("use_incremental_neighbor_update") && tick != 0) {
         update_neighbors_incremental_gpu(queue);
@@ -523,7 +524,11 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
 
     queue.enqueueReadBuffer(m_buf_positions, CL_FALSE, 0,
                              sizeof(float) * 3 * config->swarm_size,
-                             m_posistions.data());
+                             m_positions.data());
+
+    queue.enqueueReadBuffer(m_buf_directions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_orientations.data());
     queue.finish();
 
     simulate_gpu_members(track_point, enemy, queue);
@@ -576,7 +581,45 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
         std::cout << "Swarm::simulate_gpu_members" << std::endl;
     }
     // TODO: use gpu
-    simulate_cpu_members(track_point, enemy);
+    // simulate_cpu_members(track_point, enemy);
+    // return;
+    float en[4] = {enemy.get_pos().x, enemy.get_pos().y,
+                     enemy.get_pos().z, 0};
+    float sc[4] = {m_swarm_center.x, m_swarm_center.y,
+                     m_swarm_center.z, 0};
+    float st[4] = {track_point.x, track_point.y,
+                     track_point.z, 0};
+    
+    auto kernel_swarm_update = cl::Kernel(m_kernel_swarm_update, "swarm_update_members");
+    kernel_swarm_update.setArg(0, m_buf_positions);
+    kernel_swarm_update.setArg(1, m_buf_position_updates);
+    kernel_swarm_update.setArg(2, m_buf_directions);
+    kernel_swarm_update.setArg(3, m_buf_neighbors);
+    kernel_swarm_update.setArg(4, en);
+    kernel_swarm_update.setArg(5, enemy.get_size());
+    kernel_swarm_update.setArg(6, config->tick);
+    kernel_swarm_update.setArg(7, config->swarm_size);
+    kernel_swarm_update.setArg(8, config->swarm_initial_spread);
+    kernel_swarm_update.setArg(9, sc);
+    kernel_swarm_update.setArg(10, st);
+    kernel_swarm_update.setArg(11, config->swarm_speed);
+    queue.enqueueNDRangeKernel(kernel_swarm_update, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
+
+    queue.enqueueReadBuffer(m_buf_position_updates, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_position_updates.data());
+
+    queue.enqueueReadBuffer(m_buf_positions, CL_FALSE, 0,
+                             sizeof(float) * 3 * config->swarm_size,
+                             m_positions.data());
+    queue.finish();
+
+    glm::vec3 update_swarm_center = {0, 0, 0};
+    for (int i = 0; i < config->swarm_size; i++) {
+        update_swarm_center += m_position_updates[i] / (float)config->swarm_size;
+    }
+    m_swarm_center += update_swarm_center;
 }
 
 void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
@@ -617,13 +660,26 @@ void Swarm::create_kernels_and_buffers(cl::Device &device,
         util::getProgram("res/kernel/neighbor.ocl", context, device);
     m_kernel_external_forces =
         util::getProgram("res/kernel/external_forces.ocl", context, device);
+    m_kernel_swarm_update =
+        util::getProgram("res/kernel/swarm_update.ocl", context, device);
     m_buf_positions = cl::Buffer(
         context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-        sizeof(float) * 3 * config->swarm_size, m_posistions.data(), &ret);
+        sizeof(float) * 3 * config->swarm_size, m_positions.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
-    m_buf_directions;
+    m_buf_position_updates = cl::Buffer(
+        context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY,
+        sizeof(float) * 3 * config->swarm_size, m_position_updates.data(), &ret);
+    if (ret != CL_SUCCESS) {
+        std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
+    }
+    m_buf_directions = cl::Buffer(
+        context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+        sizeof(float) * 3 * config->swarm_size, m_orientations.data(), &ret);
+    if (ret != CL_SUCCESS) {
+        std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
+    }
     m_buf_neighbors = cl::Buffer(
         context, CL_MEM_USE_HOST_PTR | CL_MEM_HOST_READ_ONLY,
         sizeof(int) * 4 * config->swarm_size, m_neighbors.data(), &ret);

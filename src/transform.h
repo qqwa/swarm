@@ -28,7 +28,7 @@ class Transform {
 
     ~Transform();
 
-    static glm::mat4 Matrix(const glm::vec3 &posistion,
+    static glm::mat4 Matrix(const glm::vec3 &position,
                             const glm::quat &orientation,
                             const glm::vec3 &scale);
 

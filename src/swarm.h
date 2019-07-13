@@ -22,7 +22,9 @@ class Swarm {
 
     cl::Program m_kernel_neighbor;
     cl::Program m_kernel_external_forces;
+    cl::Program m_kernel_swarm_update;
     cl::Buffer m_buf_positions;
+    cl::Buffer m_buf_position_updates;
     cl::Buffer m_buf_directions;
     cl::Buffer m_buf_neighbors;
 
@@ -30,7 +32,8 @@ class Swarm {
     util::MeshMetaData center_mesh;
     GLuint center_shader;
 
-    std::vector<glm::vec3> m_posistions;
+    std::vector<glm::vec3> m_positions;
+    std::vector<glm::vec3> m_position_updates;
     std::vector<glm::vec3> m_orientations;
     std::vector<glm::vec3> m_scales; // most likly the same for all members..
     std::vector<int> m_neighbors;

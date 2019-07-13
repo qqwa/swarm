@@ -1,0 +1,142 @@
+// No barriers or synchronization is needed, as each kernel updates has exclusive access to its own
+// neighbors
+void kernel swarm_update_members(
+    global float* positions,
+    global float* position_updates,
+    global float* directions,
+    global const int* neighbors,
+    float3 enemy,
+    float enemy_size,
+    float tick,
+    int swarm_size,
+    float spread_factor,
+    float3 swarm_center,
+    float3 swarm_target,
+    float swarm_speed
+) {
+    __private int id = get_global_id(0);
+
+    // get position of neighbors in all threads before continuing, as we will modify the position
+    // of all swarm members
+    float3 neighbor0 = (float3)(positions[neighbors[id*4+0]*3+0], positions[neighbors[id*4+0]*3+1], positions[neighbors[id*4+0]*3+2]);
+    float3 neighbor1 = (float3)(positions[neighbors[id*4+1]*3+0], positions[neighbors[id*4+1]*3+1], positions[neighbors[id*4+1]*3+2]);
+    float3 neighbor2 = (float3)(positions[neighbors[id*4+2]*3+0], positions[neighbors[id*4+2]*3+1], positions[neighbors[id*4+2]*3+2]);
+    float3 neighbor3 = (float3)(positions[neighbors[id*4+3]*3+0], positions[neighbors[id*4+3]*3+1], positions[neighbors[id*4+3]*3+2]);
+    barrier(0);
+
+    float3 pos = (float3)(positions[id*3+0], positions[id*3+1], positions[id*3+2]);
+    float3 dir = (float3)(directions[id*3+0], directions[id*3+1], directions[id*3+2]);
+
+    // Influence neighbor
+    float3 neighbor_dir = (float3)(0,0,0);
+    float neighbor_factor = 1;
+
+    float3 vec_to_neighbor0 = neighbor0 - pos;
+    float3 vec_to_neighbor1 = neighbor1 - pos;
+    float3 vec_to_neighbor2 = neighbor2 - pos;
+    float3 vec_to_neighbor3 = neighbor3 - pos;
+
+    float neighbor_dist_min = 50.0;
+    float neighbor_dist_max = 250.0;
+
+    float dist_n0 = length(vec_to_neighbor0);
+    if (dist_n0 < neighbor_dist_min) {
+        float fact = neighbor_dist_min / dist_n0;
+        neighbor_dir -= normalize(vec_to_neighbor0) * fact;
+        neighbor_factor *= 1.777;
+    } else if (neighbor_dist_max < dist_n0) {
+        float fact = dist_n0 / neighbor_dist_max;
+        neighbor_dir += normalize(vec_to_neighbor0) * fact;
+        neighbor_factor *= 1.777;
+    }
+
+    float dist_n1 = length(vec_to_neighbor1);
+    if (dist_n1 < neighbor_dist_min) {
+        float fact = neighbor_dist_min / dist_n1;
+        neighbor_dir -= normalize(vec_to_neighbor1) * fact;
+        neighbor_factor *= 1.777;
+    } else if (neighbor_dist_max < dist_n1) {
+        float fact = dist_n1 / neighbor_dist_max;
+        neighbor_dir += normalize(vec_to_neighbor1) * fact;
+        neighbor_factor *= 1.777;
+    }
+
+    float dist_n2 = length(vec_to_neighbor2);
+    if (dist_n2 < neighbor_dist_min) {
+        float fact = neighbor_dist_min / dist_n2;
+        neighbor_dir -= normalize(vec_to_neighbor2) * fact;
+        neighbor_factor *= 1.777;
+    } else if (neighbor_dist_max < dist_n2) {
+        float fact = dist_n2 / neighbor_dist_max;
+        neighbor_dir += normalize(vec_to_neighbor2) * fact;
+        neighbor_factor *= 1.777;
+    }
+
+    float dist_n3 = length(vec_to_neighbor3);
+    if (dist_n3 < neighbor_dist_min) {
+        float fact = neighbor_dist_min / dist_n3;
+        neighbor_dir -= normalize(vec_to_neighbor3) * fact;
+        neighbor_factor *= 1.777;
+    } else if (neighbor_dist_max < dist_n3) {
+        float fact = dist_n3 / neighbor_dist_max;
+        neighbor_dir += normalize(vec_to_neighbor3) * fact;
+        neighbor_factor *= 1.777;
+    }
+
+
+    // influence enemy
+    float3 enemy_dodge_dir = (float3)(0,0,0);
+    float enemy_dodge_factor = 0;
+
+    float3 vec_to_enemy = enemy - pos;
+    float dist_enemy = distance(enemy, pos);
+    float min_dist_enemy = 300 + 5 + enemy_size;
+
+    if (dist_enemy < min_dist_enemy) {
+        enemy_dodge_factor = 30;
+        enemy_dodge_dir -= normalize(vec_to_enemy);
+    }
+
+
+    // swarm center
+    float3 swarm_center_dir = (float3)(0,0,0);
+    float swarm_center_factor = 0;
+
+    float safe_zone_radius = ((int)ceil(pow(swarm_size, 1.0/3.0)))*spread_factor;
+    float3 vec_to_swarm_center = swarm_center - pos;
+    swarm_center_factor = (length(vec_to_swarm_center) / safe_zone_radius)*5;
+    swarm_center_dir += normalize(vec_to_swarm_center);
+
+    // swarm target
+    float3 swarm_target_dir = (float3)(0,0,0);
+    float swarm_target_factor = 0;
+    
+    float3 vec_to_target = swarm_target - pos;
+    swarm_target_dir += normalize(vec_to_target);
+    if (safe_zone_radius/4 < length(vec_to_target)) {
+        swarm_target_factor = 5;
+    } else {
+        swarm_target_factor = 1.5;
+    }
+
+    // calculating new direction
+    float3 target_dir =
+        neighbor_dir * neighbor_factor
+      + enemy_dodge_dir * enemy_dodge_factor
+      + swarm_center_dir * swarm_center_factor
+      + swarm_target_dir * swarm_target_factor;
+
+    float3 final_direction = normalize(dir + normalize(target_dir) * 0.33 * tick);
+    float3 pos_update = final_direction * swarm_speed * tick;
+    pos += pos_update;
+
+    positions[id*3+0] = pos.x;
+    positions[id*3+1] = pos.y;
+    positions[id*3+2] = pos.z;
+    directions[id*3+0] = final_direction.x;
+    directions[id*3+1] = final_direction.y;
+    directions[id*3+2] = final_direction.z;
+    position_updates[id*3+0] = pos_update.x;
+    position_updates[id*3+1] = pos_update.y;
+    position_updates[id*3+2] = pos_update.z;
+}
