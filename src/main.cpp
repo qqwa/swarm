@@ -76,8 +76,6 @@ int main(int argc, char *argv[]) {
     std::cout << "\t" << config->update_swarm_cpu << std::endl;
     std::cout << "\t" << config->update_external_forces_cpu << std::endl;
 
-
-
     std::cout << "\t" << config->update_neighbors_gpu << std::endl;
     std::cout << "\t" << config->update_neighbors_incremental_gpu << std::endl;
     std::cout << "\t" << config->update_swarm_gpu << std::endl;

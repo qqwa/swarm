@@ -9,7 +9,6 @@ Config::Config(std::string path)
       update_neighbors_incremental_cpu(2500, "Update Swarm Neighbor Inc CPU"),
       update_external_forces_cpu(2500, "Update External Forces CPU"),
 
-
       update_neighbors_gpu(2500, "Update Neighbor GPU"),
       update_swarm_gpu(2500, "Update Swarm GPU"),
       update_neighbors_incremental_gpu(2500, "Update Swarm Neighbor Inc GPU"),

@@ -129,9 +129,9 @@ void Swarm::render(Camera &camera) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     } else {
         for (int i = 0; i < config->swarm_size; i++) {
-            auto model = glm::lookAt(m_positions[i],
-                                     m_positions[i] - m_orientations[i],
-                                     {0.0f, 1.0f, 0.0f});
+            auto model =
+                glm::lookAt(m_positions[i], m_positions[i] - m_orientations[i],
+                            {0.0f, 1.0f, 0.0f});
             model = glm::inverse(model);
             int modelLocation = glGetUniformLocation(bird_shader, "model");
             glUniformMatrix4fv(modelLocation, 1, GL_FALSE,
@@ -456,8 +456,8 @@ void Swarm::simulate_cpu_members(glm::vec3 track_point, Enemy enemy) {
         }
 
         // update current direction towards new target direction
-        auto final_direction =
-            m_orientations[i] + glm::normalize(target_dir) * 0.33f * config->tick;
+        auto final_direction = m_orientations[i] + glm::normalize(target_dir) *
+                                                       0.33f * config->tick;
         final_direction = glm::normalize(final_direction);
         auto pos_update = final_direction * config->swarm_speed * config->tick;
 
@@ -517,12 +517,12 @@ void Swarm::simulate_tick_gpu(int tick, glm::vec3 track_point, Wind wind,
 
     config->copy_buffer_gpu.Start();
     queue.enqueueReadBuffer(m_buf_positions, CL_TRUE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_positions.data());
+                            sizeof(float) * 3 * config->swarm_size,
+                            m_positions.data());
 
     queue.enqueueReadBuffer(m_buf_directions, CL_TRUE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_orientations.data());
+                            sizeof(float) * 3 * config->swarm_size,
+                            m_orientations.data());
     queue.finish();
     config->copy_buffer_gpu.Stop();
 }
@@ -537,8 +537,6 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     }
     // load data to buffer
     config->update_neighbors_gpu.Start();
-
-    
 
     // run kernel
     auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "update_neighbor");
@@ -576,18 +574,15 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
         std::cout << "Swarm::simulate_gpu_members" << std::endl;
     }
     config->update_swarm_gpu.Start();
-    float en[4] = {enemy.get_pos().x, enemy.get_pos().y,
-                     enemy.get_pos().z, 0};
-    float sc[4] = {m_swarm_center.x, m_swarm_center.y,
-                     m_swarm_center.z, 0};
-    float st[4] = {track_point.x, track_point.y,
-                     track_point.z, 0};
+    float en[4] = {enemy.get_pos().x, enemy.get_pos().y, enemy.get_pos().z, 0};
+    float sc[4] = {m_swarm_center.x, m_swarm_center.y, m_swarm_center.z, 0};
+    float st[4] = {track_point.x, track_point.y, track_point.z, 0};
 
-    float safe_zone_radius =
-            (int)ceil(pow(config->swarm_size, 1.f / 3.f)) *
-            config->swarm_initial_spread;
-    
-    auto kernel_swarm_update = cl::Kernel(m_kernel_swarm_update, "swarm_update_members");
+    float safe_zone_radius = (int)ceil(pow(config->swarm_size, 1.f / 3.f)) *
+                             config->swarm_initial_spread;
+
+    auto kernel_swarm_update =
+        cl::Kernel(m_kernel_swarm_update, "swarm_update_members");
     kernel_swarm_update.setArg(0, m_buf_positions);
     kernel_swarm_update.setArg(1, m_buf_position_updates);
     kernel_swarm_update.setArg(2, m_buf_directions);
@@ -605,13 +600,14 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
                                cl::NDRange(config->swarm_size), cl::NullRange);
 
     queue.enqueueReadBuffer(m_buf_position_updates, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_position_updates.data());
+                            sizeof(float) * 3 * config->swarm_size,
+                            m_position_updates.data());
     queue.finish();
 
     glm::vec3 update_swarm_center = {0, 0, 0};
     for (int i = 0; i < config->swarm_size; i++) {
-        update_swarm_center += m_position_updates[i] / (float)config->swarm_size;
+        update_swarm_center +=
+            m_position_updates[i] / (float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
     config->update_swarm_gpu.Stop();
@@ -665,9 +661,10 @@ void Swarm::create_kernels_and_buffers(cl::Device &device,
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
-    m_buf_position_updates = cl::Buffer(
-        context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
-        sizeof(float) * 3 * config->swarm_size, m_position_updates.data(), &ret);
+    m_buf_position_updates =
+        cl::Buffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_HOST_READ_ONLY,
+                   sizeof(float) * 3 * config->swarm_size,
+                   m_position_updates.data(), &ret);
     if (ret != CL_SUCCESS) {
         std::cout << "CL_ERROR: (m_buf_positions)" << ret << std::endl;
     }
