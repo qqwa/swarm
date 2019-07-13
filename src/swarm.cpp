@@ -612,6 +612,11 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
 
     m_swarm_center += wind.get_force() * config->tick;
     m_swarm_center += gravitation.get_force() * config->tick;
+
+    // we need to wait for the queue to finish before exiting this function, as otherwise
+    // the grav and win vector would get be deallocated while the kernel runs and opencl
+    // doesn't seam to like it in final cleanup
+    queue.finish();
 }
 
 void Swarm::create_kernels_and_buffers(cl::Device &device,
