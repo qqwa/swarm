@@ -127,7 +127,7 @@ void kernel swarm_update_members(
       + swarm_center_dir * swarm_center_factor
       + swarm_target_dir * swarm_target_factor;
 
-    float3 final_direction = normalize(dir + normalize(target_dir) * 0.33 * tick);
+    float3 final_direction = normalize(dir + normalize(target_dir) * 0.33f * tick);
     float3 pos_update = final_direction * swarm_speed * tick;
     pos += pos_update;
 
