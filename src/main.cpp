@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    std::cout << config->random_seed << std::endl;
+    // std::cout << config->random_seed << std::endl;
 
     window = glfwCreateWindow(config->width, config->height, "DebugWindow",
                               nullptr, nullptr);

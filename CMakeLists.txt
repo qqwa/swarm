@@ -46,7 +46,7 @@ target_link_libraries(swarm PRIVATE GLEW::GLEW)
 
 # glm
 add_subdirectory(libs/glm EXCLUDE_FROM_ALL)
-target_link_libraries(swarm PRIVATE glm)
+# target_link_libraries(swarm PRIVATE glm)
 
 # opencl
 find_package(OpenCL REQUIRED)

@@ -16,7 +16,7 @@ skip_full_neighbor_update = true
 camera_position = false
 swarm_reset = true
 smallest_dist = false
-trace_swarm = true
+trace_swarm = false
 
 [settings]
 width = 1200
@@ -24,7 +24,10 @@ height = 800
 random_seed = 110
 tick = 0.0166667
 debug_sphere_size = 25.0
-follow_swarm_center = true
+# -1, to select first platform/device automatically, otherwise choose ids of list printed, when running the
+# program once
+platform_id = -1
+device_id = -1
 
 [swarm]
 size = 100_000

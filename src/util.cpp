@@ -1,4 +1,5 @@
 #include "util.h"
+#include "config.h"
 
 #include <algorithm>
 #include <fstream>
@@ -36,22 +37,53 @@ cl::Program util::getProgram(std::string path, cl::Context &context,
 
 cl::Device util::getFirstDevice() {
     std::vector<cl::Platform> all_platforms;
+    std::vector<cl::Device> all_devices;
     cl::Platform::get(&all_platforms);
+
+    std::cout << "Available Platforms:" << std::endl;
+    for (int i = 0; i < all_platforms.size(); i++) {std::vector<cl::Device> all_devices;
+        all_platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+        std::cout << "\tplatform_id(" << i << ") " << all_platforms[i].getInfo<CL_PLATFORM_NAME>() <<  "has devices:" << std::endl;
+        for (int j = 0; j < all_devices.size(); j++) {
+            std::cout << "\t\tdevice_id(" << j << "): " << all_devices[i].getInfo<CL_DEVICE_NAME>() << std::endl; 
+        }
+    }
+
     if (all_platforms.size() == 0) {
         std::cout << " No platforms found. Check OpenCL installation!\n";
         exit(1);
     }
-    cl::Platform default_platform = all_platforms[0];
-    std::cout << "Using platform: "
-              << default_platform.getInfo<CL_PLATFORM_NAME>() << "\n";
 
-    std::vector<cl::Device> all_devices;
+    cl::Platform default_platform;
+    if (config->platform_id == -1) {
+        default_platform = all_platforms[0];
+    } else {
+        if (!(0 < config->platform_id && config->platform_id < all_platforms.size())) {
+            std::cout << " Platform id out of range select between 0 and " << all_platforms.size() -1 << "\n";
+            exit(1);
+        }
+        default_platform = all_platforms[config->platform_id];
+    }
+
+
     default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
     if (all_devices.size() == 0) {
         std::cout << " No devices found. Check OpenCL installation!\n";
         exit(1);
     }
-    cl::Device default_device = all_devices[0];
+    cl::Device default_device;
+    if (config->device_id == -1) {
+        default_device = all_devices[0];
+    } else {
+        if (!(0 < config->device_id && config->device_id < all_platforms.size())) {
+            std::cout << " Device id out of range select between 0 and " << all_devices.size() -1 << "\n";
+            exit(1);
+        }
+        default_device = all_devices[config->device_id];
+    }
+
+    std::cout << "Using platform: "
+              << default_platform.getInfo<CL_PLATFORM_NAME>() << "\n";
     std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>()
               << "\n";
     return default_device;

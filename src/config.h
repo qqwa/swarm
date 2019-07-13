@@ -28,6 +28,8 @@ class Config {
     float swarm_weight_track_point;
     float swarm_weight_swarm_center;
     float gravitation;
+    int platform_id;
+    int device_id;
 
     Profiler render;
     Profiler update;

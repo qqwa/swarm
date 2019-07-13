@@ -35,6 +35,20 @@ Config::Config(std::string path)
         throw std::runtime_error("config error settings.height");
     }
 
+    val = m_config->get_qualified_as<int>("settings.platform_id");
+    if (val) {
+        platform_id = *val;
+    } else {
+        throw std::runtime_error("config error settings.platform_id");
+    }
+
+    val = m_config->get_qualified_as<int>("settings.device_id");
+    if (val) {
+        device_id = *val;
+    } else {
+        throw std::runtime_error("config error settings.device_id");
+    }
+
     val = m_config->get_qualified_as<int>("settings.random_seed");
     if (val) {
         random_seed = *val;
