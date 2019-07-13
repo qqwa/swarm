@@ -480,6 +480,7 @@ void Swarm::simulate_cpu_external_forces(Wind wind, Gravitation gravitation) {
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_cpu_external_forces" << std::endl;
     }
+    config->update_external_forces_cpu.Start();
     for (int i = 0; i < config->swarm_size; i++) {
         auto pos = m_positions[i];
         pos += wind.get_force() * config->tick;
@@ -488,6 +489,7 @@ void Swarm::simulate_cpu_external_forces(Wind wind, Gravitation gravitation) {
     }
     m_swarm_center += wind.get_force() * config->tick;
     m_swarm_center += gravitation.get_force() * config->tick;
+    config->update_external_forces_cpu.Stop();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -580,9 +582,7 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_gpu_members" << std::endl;
     }
-    // TODO: use gpu
-    // simulate_cpu_members(track_point, enemy);
-    // return;
+    config->update_swarm_gpu.Start();
     float en[4] = {enemy.get_pos().x, enemy.get_pos().y,
                      enemy.get_pos().z, 0};
     float sc[4] = {m_swarm_center.x, m_swarm_center.y,
@@ -620,6 +620,7 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
         update_swarm_center += m_position_updates[i] / (float)config->swarm_size;
     }
     m_swarm_center += update_swarm_center;
+    config->update_swarm_gpu.Stop();
 }
 
 void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
@@ -627,6 +628,7 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_gpu_external_forces" << std::endl;
     }
+    config->update_external_forces_gpu.Start();
 
     float grav[4] = {gravitation.get_force().x, gravitation.get_force().y,
                      gravitation.get_force().z, 0};
@@ -648,6 +650,7 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
     // otherwise the grav and win vector would get be deallocated while the
     // kernel runs and opencl doesn't seam to like it in final cleanup
     queue.finish();
+    config->update_external_forces_gpu.Stop();
 }
 
 void Swarm::create_kernels_and_buffers(cl::Device &device,

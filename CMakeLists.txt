@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(gpu-swarm)
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 add_executable(swarm
     src/main.cpp
     src/config.cpp
