@@ -40,5 +40,5 @@ void Gravitation::render(Camera &camera) {
 }
 
 glm::vec3 Gravitation::get_force() const {
-    return glm::toMat3(m_direction) * glm::vec3{0, m_strength, 0};
+    return glm::vec3{0, -m_strength, 0};
 }

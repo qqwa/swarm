@@ -1,0 +1,18 @@
+// No barriers or synchronization is needed, as each kernel updates has exclusive access to its own
+// neighbors
+void kernel combined(
+    global float* positions,
+    float3 graviation_force,
+    float3 wind_force,
+    float tick
+) {
+    __private int id = get_global_id(0);
+
+    positions[id*3+0] += (wind_force.x * tick);
+    positions[id*3+1] += (wind_force.y * tick);
+    positions[id*3+2] += (wind_force.z * tick);
+
+    positions[id*3+0] += (graviation_force.x * tick);
+    positions[id*3+1] += (graviation_force.y * tick);
+    positions[id*3+2] += (graviation_force.z * tick);
+}

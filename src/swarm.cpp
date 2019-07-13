@@ -599,8 +599,19 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
     if (config->debug("trace_swarm")) {
         std::cout << "Swarm::simulate_gpu_external_forces" << std::endl;
     }
-    // TODO: use gpu
-    simulate_cpu_external_forces(wind, gravitation);
+
+    float grav[4] = {gravitation.get_force().x, gravitation.get_force().y, gravitation.get_force().z, 0};
+    float win[4] = {wind.get_force().x, wind.get_force().y, wind.get_force().z, 0};
+    auto kernel_extern_forces_combined = cl::Kernel(m_kernel_external_forces, "combined");
+    kernel_extern_forces_combined.setArg(0, m_buf_positions);
+    kernel_extern_forces_combined.setArg(1, grav);
+    kernel_extern_forces_combined.setArg(2, win);
+    kernel_extern_forces_combined.setArg(3, config->tick);
+    queue.enqueueNDRangeKernel(kernel_extern_forces_combined, cl::NullRange,
+                               cl::NDRange(config->swarm_size), cl::NullRange);
+
+    m_swarm_center += wind.get_force() * config->tick;
+    m_swarm_center += gravitation.get_force() * config->tick;
 }
 
 void Swarm::create_kernels_and_buffers(cl::Device &device,
@@ -611,6 +622,8 @@ void Swarm::create_kernels_and_buffers(cl::Device &device,
     int ret;
     m_kernel_neighbor =
         util::getProgram("res/kernel/neighbor.ocl", context, device);
+    m_kernel_external_forces =
+        util::getProgram("res/kernel/external_forces.ocl", context, device);
     m_buf_positions = cl::Buffer(
         context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
         sizeof(float) * 3 * config->swarm_size, m_posistions.data(), &ret);

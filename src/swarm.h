@@ -21,6 +21,7 @@ class Swarm {
     GLuint instance_dir_vbo;
 
     cl::Program m_kernel_neighbor;
+    cl::Program m_kernel_external_forces;
     cl::Buffer m_buf_positions;
     cl::Buffer m_buf_directions;
     cl::Buffer m_buf_neighbors;

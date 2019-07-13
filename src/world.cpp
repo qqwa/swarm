@@ -25,7 +25,7 @@ World::World(GLFWwindow *window, cl::Device *device, cl::Context *context,
     tick = 0;
     m_wind = Wind();
     m_enemy = Enemy();
-    m_gravitation = Gravitation(+9.81);
+    m_gravitation = Gravitation(config->gravitation);
 
     m_swarm.reset();
     if (!config->debug("use_cpu")) {
