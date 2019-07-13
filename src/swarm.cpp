@@ -533,27 +533,14 @@ void Swarm::update_neighbors_gpu(cl::CommandQueue &queue) {
     kernel_neighbor.setArg(0, m_buf_positions);
     kernel_neighbor.setArg(1, m_buf_neighbors);
     kernel_neighbor.setArg(2, config->swarm_size);
-    // auto kernel_neighbor = cl::Kernel(m_kernel_neighbor, "test");
     queue.enqueueNDRangeKernel(kernel_neighbor, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
-    // queue.finish();
 
     // load data from buffer
     auto ret = queue.enqueueReadBuffer(m_buf_neighbors, CL_TRUE, 0,
                                        sizeof(int) * 4 * config->swarm_size,
                                        m_neighbors.data());
     queue.finish();
-
-    // std::cout << "<CL_MEM_SIZE>: " << m_buf_neighbors.getInfo<CL_MEM_SIZE>()
-    // << std::endl; void* mapped_read = queue.enqueueMapBuffer(m_buf_neighbors,
-    // CL_TRUE, CL_MAP_READ, 0, 10); std::cout << "Mapped value of Buffer C at
-    // index 1: " << ((cl_int *)mapped_read)[1] << std::endl;
-    // queue.enqueueUnmapMemObject(m_buf_neighbors, mapped_read);
-    // for (int i = 0; i < 4; i++) {
-    //     std::cout << "\t" << m_neighbors[i] << "\n";
-    // }
-    // std::cout << std::endl;
-    // exit(1);
 
     config->update_neighbors_gpu.Stop();
 };
