@@ -587,9 +587,12 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
         std::cout << "Swarm::simulate_gpu_external_forces" << std::endl;
     }
 
-    float grav[4] = {gravitation.get_force().x, gravitation.get_force().y, gravitation.get_force().z, 0};
-    float win[4] = {wind.get_force().x, wind.get_force().y, wind.get_force().z, 0};
-    auto kernel_extern_forces_combined = cl::Kernel(m_kernel_external_forces, "combined");
+    float grav[4] = {gravitation.get_force().x, gravitation.get_force().y,
+                     gravitation.get_force().z, 0};
+    float win[4] = {wind.get_force().x, wind.get_force().y, wind.get_force().z,
+                    0};
+    auto kernel_extern_forces_combined =
+        cl::Kernel(m_kernel_external_forces, "combined");
     kernel_extern_forces_combined.setArg(0, m_buf_positions);
     kernel_extern_forces_combined.setArg(1, grav);
     kernel_extern_forces_combined.setArg(2, win);
@@ -600,9 +603,9 @@ void Swarm::simulate_gpu_external_forces(Wind wind, Gravitation gravitation,
     m_swarm_center += wind.get_force() * config->tick;
     m_swarm_center += gravitation.get_force() * config->tick;
 
-    // we need to wait for the queue to finish before exiting this function, as otherwise
-    // the grav and win vector would get be deallocated while the kernel runs and opencl
-    // doesn't seam to like it in final cleanup
+    // we need to wait for the queue to finish before exiting this function, as
+    // otherwise the grav and win vector would get be deallocated while the
+    // kernel runs and opencl doesn't seam to like it in final cleanup
     queue.finish();
 }
 
