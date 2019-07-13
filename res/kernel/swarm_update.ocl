@@ -12,7 +12,8 @@ void kernel swarm_update_members(
     float spread_factor,
     float3 swarm_center,
     float3 swarm_target,
-    float swarm_speed
+    float swarm_speed,
+    float safe_zone_radius
 ) {
     __private int id = get_global_id(0);
 
@@ -102,7 +103,7 @@ void kernel swarm_update_members(
     float3 swarm_center_dir = (float3)(0,0,0);
     float swarm_center_factor = 0;
 
-    float safe_zone_radius = ((int)ceil(pow(swarm_size, 1.0/3.0)))*spread_factor;
+    // float safe_zone_radius = ((int)ceil(pow(swarm_size, 1.0/3.0)))*spread_factor;
     float3 vec_to_swarm_center = swarm_center - pos;
     swarm_center_factor = (length(vec_to_swarm_center) / safe_zone_radius)*5;
     swarm_center_dir += normalize(vec_to_swarm_center);

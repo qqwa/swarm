@@ -582,6 +582,10 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
                      m_swarm_center.z, 0};
     float st[4] = {track_point.x, track_point.y,
                      track_point.z, 0};
+
+    float safe_zone_radius =
+            (int)ceil(pow(config->swarm_size, 1.f / 3.f)) *
+            config->swarm_initial_spread;
     
     auto kernel_swarm_update = cl::Kernel(m_kernel_swarm_update, "swarm_update_members");
     kernel_swarm_update.setArg(0, m_buf_positions);
@@ -596,16 +600,13 @@ void Swarm::simulate_gpu_members(glm::vec3 track_point, Enemy enemy,
     kernel_swarm_update.setArg(9, sc);
     kernel_swarm_update.setArg(10, st);
     kernel_swarm_update.setArg(11, config->swarm_speed);
+    kernel_swarm_update.setArg(12, safe_zone_radius);
     queue.enqueueNDRangeKernel(kernel_swarm_update, cl::NullRange,
                                cl::NDRange(config->swarm_size), cl::NullRange);
 
     queue.enqueueReadBuffer(m_buf_position_updates, CL_FALSE, 0,
                              sizeof(float) * 3 * config->swarm_size,
                              m_position_updates.data());
-
-    queue.enqueueReadBuffer(m_buf_positions, CL_FALSE, 0,
-                             sizeof(float) * 3 * config->swarm_size,
-                             m_positions.data());
     queue.finish();
 
     glm::vec3 update_swarm_center = {0, 0, 0};
