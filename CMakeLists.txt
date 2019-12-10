@@ -47,6 +47,7 @@ target_link_libraries(swarm PRIVATE GLEW::GLEW)
 # glm
 add_subdirectory(libs/glm EXCLUDE_FROM_ALL)
 # target_link_libraries(swarm PRIVATE glm)
+target_include_directories(swarm PRIVATE ${CMAKE_SOURCE_DIR}/libs/glm)
 
 # opencl
 find_package(OpenCL REQUIRED)

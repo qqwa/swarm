@@ -2,7 +2,7 @@
 
 [debug]
 control_camera = true
-use_cpu = false
+use_cpu = true
 manuel_tick = false
 instance_rendering = true
 # should be set to true, when profiling render time
@@ -16,7 +16,7 @@ skip_full_neighbor_update = true
 camera_position = false
 swarm_reset = true
 smallest_dist = false
-trace_swarm = false
+trace_swarm = true
 
 [settings]
 width = 1200
@@ -30,7 +30,7 @@ platform_id = -1
 device_id = -1
 
 [swarm]
-size = 100_000
+size = 10_000
 start = [200.0, 150.0, 0.0]
 speed = 50.0
 
