@@ -5,7 +5,7 @@
 Clone this repositiory:
 
 ```bash
-git clone git@git.ios.htwg-konstanz.de:gpu/swarm.git
+git clone git@github.com:qqwa/swarm.git
 cd swarm
 git submodule update --init --recursive
 ```
